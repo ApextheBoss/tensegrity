@@ -26,3 +26,5 @@ export type { AgentId, LogicalTime, VectorClock, CausalEvent, Dot, DottedVersion
 export { ServiceDiscoveryMesh, LocalRegistry, QueryEngine, HealthChecker, LocalityScorer, WatchManager, GossipDisseminator, SplitBrainDetector, createMesh, PRESETS as DiscoveryPresets } from './service-discovery-mesh';
 export type { ServiceInstance, ServiceQuery, DiscoveryResult, TopologyChangeEvent, WatchSubscription, GossipDigest, AntiEntropyDelta, SplitBrainReport, MeshEvent, MeshConfig, HealthStatus, LocalityInfo } from './service-discovery-mesh';
 export { TaskDecompositionEngine, ComplexityEstimator, DependencyInferrer, VelocityTracker, RiskScorer, CriticalPathCalculator, GranularityController, SkillGapAnalyzer, createSmallTeamDecomposer, createLargeProjectDecomposer, createSprintDecomposer } from './autonomous-task-decomposer';
+export { SchedulerAffinityGraph, AffinityGraph, AgentLoadTracker, AntiAffinityManager, DeadlineTracker, BatchOptimizer, PRESETS as AffinitySchedulerPresets } from './scheduler-affinity-graph';
+export type { AgentProfile, TaskType, Task, AffinityEdge, AssignmentResult, SchedulerEvent, SchedulerConfig } from './scheduler-affinity-graph';
