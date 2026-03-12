@@ -13,3 +13,5 @@ export { LeaseConsensusProtocol, LeaseGrantor, LeaseValidator, ReadDelegator, Wr
 export { CapabilityHealthMonitor, CapabilityProbe, DegradationDetector, FailurePredictor, CapabilityScorecard, RemediationEngine, HealthFederator, PRESETS as HealthMonitorPresets } from './capability-health-monitor';
 export { ConsensusViewSynchronizer, PacemakerTimer, ViewChangeCollector, HighestCertificateTracker, LeaderScheduler, CatchUpProtocol, OptimisticViewAdvance, TimeoutCertificateBuilder, ViewDivergenceDetector, PRESETS as ViewSyncPresets } from './consensus-view-synchronizer';
 export { ResourceContentionArbiter, ResourceDemandTracker, AuctionEngine, CooperativeBargainer, StarvationDetector, ContentionPredictor, WaitDieProtocol, ResourceBudgetPlanner, PreemptionManager, ARBITER_PRESETS } from './resource-contention-arbiter';
+export { FederationRouter, HybridRateLimiter, RequestCoalescer, FairnessEnforcer, QuotaNegotiator, PRESETS as FederationPresets } from './rate-aware-federation';
+export type { FederationConfig, FederatedRequest, FederationPeer, FederationEvent, RequestPriority, QuotaNegotiation } from './rate-aware-federation';

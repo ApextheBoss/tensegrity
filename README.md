@@ -233,6 +233,38 @@ console.log(status.starvation.severity);      // 'none' | 'mild' | 'moderate' | 
 
 Three presets: `fair-share` (Nash bargaining, low starvation tolerance), `priority-driven` (preemption enabled), `market-based` (auction-resolved).
 
+### FederationRouter
+
+Cross-network agent federation with rate awareness. When your agents span multiple networks (different API providers, different clusters, different orgs), this handles the coordination: per-network rate budgets using a token bucket + sliding window hybrid, adaptive request prioritization, quota negotiation between federation peers, cooperative rate sharing (idle peers donate unused quota), request coalescing across federation boundaries, and fairness enforcement so no single peer can starve others.
+
+```typescript
+import { FederationRouter, FederationPresets } from 'tensegrity';
+
+const router = new FederationRouter(FederationPresets.balanced());
+
+router.addPeer({
+  id: 'agent-0x5678',
+  networkId: 'openai-cluster',
+  endpoint: 'https://peer.example.com',
+  capabilities: ['summarize', 'classify'],
+  trustLevel: 0.9,
+  quotaGranted: 100,
+  quotaUsed: 0,
+  windowStartMs: Date.now(),
+  windowDurationMs: 60_000,
+  lastContactMs: Date.now()
+});
+
+const req = router.submit('openai-cluster', 'summarize', { text: '...' }, 'high');
+// low-priority requests get shed first when budget runs low
+// requests with the same coalescing key get batched automatically
+
+const forecast = router.getForecast('openai-cluster', 300_000);
+console.log(forecast.exhaustionRisk); // 'low' | 'medium' | 'high' | 'critical'
+```
+
+Includes budget forecasting via linear regression over consumption history, circuit breakers that trip on repeated 429s (not just 5xx), and bilateral/multilateral quota negotiation. Three presets: `conservative` (tight limits, aggressive shedding), `balanced` (gradual degradation), `aggressive` (high throughput, loose fairness).
+
 ## why this exists
 
 every "agent framework" right now is a thin wrapper around prompt chaining. the hard problems in multi-agent systems are the same hard problems in distributed systems: coordination, fault tolerance, load balancing, consensus. these are solved problems in distributed computing. nobody has ported them to the agent world properly.
