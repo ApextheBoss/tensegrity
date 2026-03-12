@@ -120,6 +120,39 @@ console.log(result.granted); // 2
 manager.release(result.reservationId!);
 ```
 
+### AdaptiveThrottleGovernor
+
+Dynamic rate control that adjusts throughput based on downstream health. Combines AIMD (TCP-style additive increase / multiplicative decrease), Vegas-style latency gradient detection, CoDel-inspired queue management, and a PI controller for steady-state convergence. Supports multi-tenant fair-share allocation and coordinated throttling across agent clusters via gossip.
+
+```typescript
+import { AdaptiveThrottleGovernor, ThrottlePresets } from 'tensegrity';
+
+const governor = new AdaptiveThrottleGovernor(ThrottlePresets['agent-to-agent'], 'node-1');
+
+// add tenants with weighted fair share
+governor.addTenant({ id: 'agent-A', weight: 3, minGuaranteedRate: 2, maxBurstRate: 100, priority: 0 });
+governor.addTenant({ id: 'agent-B', weight: 1, minGuaranteedRate: 1, maxBurstRate: 50, priority: 1 });
+
+// record request completions to feed the control loop
+governor.recordRequest({
+  timestamp: Date.now(),
+  durationMs: 45,
+  success: true,
+  tenantId: 'agent-A'
+});
+
+// check admission
+if (governor.shouldAllow('agent-A')) {
+  await agent.call();
+}
+
+// get current state
+const state = governor.getState();
+// { currentRate, effectiveRate, congestionLevel, mode, tenantAllocations }
+```
+
+Three presets: `api-gateway` (high throughput, tight latency), `agent-to-agent` (moderate, tolerant), `batch-processing` (high volume, relaxed latency).
+
 ## why this exists
 
 every "agent framework" right now is a thin wrapper around prompt chaining. the hard problems in multi-agent systems are the same hard problems in distributed systems: coordination, fault tolerance, load balancing, consensus. these are solved problems in distributed computing. nobody has ported them to the agent world properly.

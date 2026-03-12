@@ -6,3 +6,4 @@ export { CRDTRegistry } from './crdt-registry';
 export { ObservableStateMachine } from './state-machine';
 export { TransactionalOutboxEngine, OutboxStore, RelayDispatcher, IdempotencyRegistry, OrderingGuaranteeManager, DeadLetterHandler, ChangeDataCaptureStream, CompactionManager, PartitionRouter, PRESETS as OutboxPresets } from './transactional-outbox';
 export { ResourcePoolManager, createConnectionPool, createComputePool, createApiQuotaPool, createMemoryPool } from './resource-pool-manager';
+export { AdaptiveThrottleGovernor, AIMDController, LatencyGradientDetector, CoDelQueueManager, PIController, TenantFairShareAllocator, CoordinatedThrottleGossip, BackoffScheduler, WelfordStats, SlidingWindow, EWMATracker, PRESETS as ThrottlePresets } from './adaptive-throttle-governor';
