@@ -34,3 +34,9 @@ export { BackoffCoordinator, BackoffCalculator, SlotManager, CorrelationDetector
 export type { BackoffCoordinatorConfig, BackoffState, RetrySlot, CorrelatedFailure, DependencyEdge, BackoffEvent } from './backoff-coordinator';
 export { NetworkPartitioner, PartitionTopologyManager, PhiAccrualDetector, ControlledPartitionEngine, SplitBrainResolver, PartitionAwareRouter, HealingCoordinator, PartitionHistoryLogger, PRESETS as PartitionerPresets } from './agent-network-partitioner';
 export type { AgentNode, NetworkLink, Partition, PartitionEvent, SplitBrainResolution, HealingPlan, PartitionerConfig } from './agent-network-partitioner';
+export { MetricCollector, HypothesisEvaluator, BlastRadiusController, KillSwitchMonitor, TargetResolver, FaultInjector, PreflightChecker, ExperimentEngine, GameDayCoordinator, singleAgentCrashScenario, networkPartitionScenario, cascadingFailureScenario, resourceExhaustionScenario } from './chaos-testing-harness';
+export type { SteadyStateHypothesis, MetricAssertion, FaultSpec, FaultType, Experiment, ExperimentResults, SafetyConfig, GameDay, ChaosEvent } from './chaos-testing-harness';
+export { TokenEconomyEngine, SupplyController, StakingManager, PaymentChannelManager, ConstantProductAMM, RevenueManager, PRESETS as TokenEconomyPresets } from './token-economy-engine';
+export type { TokenConfig, Account as TokenAccount, StakePosition, PaymentChannel, AMMPool, RevenuePool, TokenEvent, SupplySchedule, DistributionStrategy, VestingSchedule } from './token-economy-engine';
+export { ExactlyOnceQueue, PRESETS as ExactlyOncePresets } from './work-queue-exactly-once';
+export type { TaskEnvelope, ClaimedTask, CompletionReceipt, DeadLetterEntry, AttemptRecord, QueueEvent, QueueConfig } from './work-queue-exactly-once';
