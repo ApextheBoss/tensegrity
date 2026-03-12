@@ -352,6 +352,54 @@ const best = mesh.resolveOne('agent.compute', { region: 'us-east' });
 
 Three presets: `small-cluster`, `medium-network`, `large-federation`.
 
+### ChaosTestingHarness
+
+Chaos engineering for agent networks. Define steady-state hypotheses, inject controlled faults (latency, crashes, partitions, byzantine behavior), and verify your system survives. Includes blast radius containment, kill switches, GameDay orchestration, and pre-built scenarios.
+
+```typescript
+import { ExperimentEngine, singleAgentCrashScenario } from 'tensegrity';
+
+const engine = new ExperimentEngine(config);
+const experiment = engine.createExperiment({
+  name: 'agent-crash-resilience',
+  hypothesis: { metrics: [{ metric: 'success_rate', operator: 'gte', value: 0.95 }] },
+  faults: [{ type: 'agent-crash', targets: { mode: 'random', count: 1 } }]
+});
+const results = await engine.run(experiment);
+// results.hypothesisHeld — did the system maintain steady state?
+```
+
+### TokenEconomyEngine
+
+Complete token-based micro-economy for agent coordination. Minting with supply schedules (fixed, inflationary, deflationary, bonding curve), staking with slashing, payment channels for high-frequency transfers, AMM for capability pricing, and revenue sharing with contribution-weighted splits.
+
+```typescript
+import { TokenEconomyEngine } from 'tensegrity';
+
+const economy = new TokenEconomyEngine({
+  symbol: 'WORK', decimals: 18, initialSupply: 1_000_000,
+  supplySchedule: { kind: 'bonding-curve', reserveRatio: 0.5, basePrice: 0.01 },
+  stakingEnabled: true, ammEnabled: true
+});
+economy.mint('agent-1', 1000);
+economy.stake('agent-1', 500, { lockDuration: 100 });
+// Slashing, payment channels, AMM swaps, revenue distribution all built in
+```
+
+### ExactlyOnceQueue
+
+Distributed work queue guaranteeing each task is processed exactly once across competing agents. Bloom filter deduplication, lease-based visibility timeouts, fencing tokens to prevent stale commits, poison pill detection, and automatic dead-lettering.
+
+```typescript
+import { ExactlyOnceQueue } from 'tensegrity';
+
+const queue = new ExactlyOnceQueue(config);
+queue.enqueue({ id: 'task-1', affinityKey: 'shard-a', payload: data });
+const claimed = queue.claim('worker-1');
+// Process, then commit with fencing token
+queue.complete({ taskId: claimed.envelope.id, fenceToken: claimed.fenceToken });
+```
+
 ## why this exists
 
 every "agent framework" right now is a thin wrapper around prompt chaining. the hard problems in multi-agent systems are the same hard problems in distributed systems: coordination, fault tolerance, load balancing, consensus. these are solved problems in distributed computing. nobody has ported them to the agent world properly.
