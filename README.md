@@ -81,6 +81,45 @@ router.recordFailure('agent-B');
 const best = router.route('summarize'); // picks agent-A
 ```
 
+### TransactionalOutboxEngine
+
+Guarantees exactly-once event publishing from agent state changes. Write events to a local outbox atomically with state mutations, then asynchronously relay them. Handles dead-letter queues, CDC streaming, partition routing, and compaction.
+
+```typescript
+import { TransactionalOutboxEngine, OutboxPresets } from 'tensegrity';
+
+const engine = new TransactionalOutboxEngine(OutboxPresets['agent-event-bus']);
+engine.addWorker('relay-1');
+
+engine.onDelivery(async (event) => {
+  await externalBus.publish(event.topic, event.payload);
+  return true;
+});
+
+engine.appendEvent('agent-0x1234', 'task.completed', { taskId: '...', result: '...' });
+await engine.tick(); // polls, dispatches, compacts
+```
+
+### ResourcePoolManager
+
+Manages shared resource pools (connections, compute slots, API quotas) across agents with fair allocation, reservation, preemption, and auto-scaling triggers.
+
+```typescript
+import { ResourcePoolManager, createComputePool } from 'tensegrity';
+
+const manager = new ResourcePoolManager();
+manager.addResource(createComputePool('gpu-cluster', 8));
+
+const result = await manager.allocate('agent-A', 'gpu-cluster', 2, {
+  priority: 5,
+  ttlMs: 60_000,
+  purpose: 'inference batch'
+});
+
+console.log(result.granted); // 2
+manager.release(result.reservationId!);
+```
+
 ## why this exists
 
 every "agent framework" right now is a thin wrapper around prompt chaining. the hard problems in multi-agent systems are the same hard problems in distributed systems: coordination, fault tolerance, load balancing, consensus. these are solved problems in distributed computing. nobody has ported them to the agent world properly.

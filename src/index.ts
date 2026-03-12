@@ -4,3 +4,5 @@ export { TaskAuction } from './task-auction';
 export { ReputationWeightedRouter } from './reputation-router';
 export { CRDTRegistry } from './crdt-registry';
 export { ObservableStateMachine } from './state-machine';
+export { TransactionalOutboxEngine, OutboxStore, RelayDispatcher, IdempotencyRegistry, OrderingGuaranteeManager, DeadLetterHandler, ChangeDataCaptureStream, CompactionManager, PartitionRouter, PRESETS as OutboxPresets } from './transactional-outbox';
+export { ResourcePoolManager, createConnectionPool, createComputePool, createApiQuotaPool, createMemoryPool } from './resource-pool-manager';
