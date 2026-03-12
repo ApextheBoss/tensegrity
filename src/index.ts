@@ -15,3 +15,5 @@ export { ConsensusViewSynchronizer, PacemakerTimer, ViewChangeCollector, Highest
 export { ResourceContentionArbiter, ResourceDemandTracker, AuctionEngine, CooperativeBargainer, StarvationDetector, ContentionPredictor, WaitDieProtocol, ResourceBudgetPlanner, PreemptionManager, ARBITER_PRESETS } from './resource-contention-arbiter';
 export { FederationRouter, HybridRateLimiter, RequestCoalescer, FairnessEnforcer, QuotaNegotiator, PRESETS as FederationPresets } from './rate-aware-federation';
 export type { FederationConfig, FederatedRequest, FederationPeer, FederationEvent, RequestPriority, QuotaNegotiation } from './rate-aware-federation';
+export { EventuallyConsistentIndex, InvertedIndex, BTreeIndex, HashIndex, IndexVersionVector, ConvergenceChecker, ConflictResolver, QueryPlanner, IndexCompactor, StaleReadDetector, PRESETS as ECIndexPresets } from './eventually-consistent-index';
+export type { IndexDefinition, PostingEntry, IndexEvent, VersionVector, QueryPlan, Query, ConvergenceStatus, ConflictStrategy, ConflictRecord, CompactionStats, ECIndexConfig } from './eventually-consistent-index';
