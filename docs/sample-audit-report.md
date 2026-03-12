@@ -17,13 +17,22 @@
 **Risk:** [what happens when this fails]  
 **Evidence:** [specific code/config/architecture that causes this]  
 **Fix:** [concrete recommendation with code example if applicable]  
-**Effort:** [hours estimate]
+**Code Change:**
+```typescript
+// Before (vulnerable):
+[exact code that causes the issue]
+
+// After (resilient):
+[exact code that fixes it, copy-pasteable]
+```
+**Effort:** [hours estimate]  
+**Verify:** [how to confirm the fix worked — specific test or metric to check]
 
 ### HIGH — [title]
-[same format]
+[same format as CRITICAL, always include Code Change block]
 
 ### MEDIUM — [title]
-[same format]
+[same format — even medium findings get a concrete fix]
 
 ## Architecture Review
 
@@ -53,6 +62,16 @@
 ## What's Working Well
 
 [Specific things the system does right. Not filler. Real observations.]
+
+---
+
+## Next Steps (Do This Tomorrow)
+
+1. **[Most urgent fix]** — [one sentence, link to exact file/line]
+2. **[Second fix]** — [one sentence]
+3. **[Quick win]** — [one sentence, takes <1 hour]
+
+*The goal: after reading this report, you should know exactly what to change, in what order, and how to verify each fix worked.*
 
 ---
 
