@@ -293,6 +293,65 @@ const stats = engine.getStats();
 
 Seven composable subsystems: `SwimMembership` (failure detection), `PlumtreeGossip` (hybrid push/pull), `MerkleAntiEntropy` (state convergence), `BimodalMulticast` (high-reliability broadcast), `AdaptiveFanout` (dynamic fan-out tuning), `RumorManager` (infection-style spreading), `PartitionDetector` (split-brain detection). Three presets: `small-cluster` (5-20 agents), `medium-network` (20-200), `large-federation` (200+).
 
+### DistributedLockManager
+
+Mutual exclusion for multi-agent systems without centralized coordination. Implements Lamport's Bakery Algorithm (total ordering), Maekawa's √N Quorum (reduced message complexity), Redlock-style multi-region locking, and hierarchical intention locks (IX/IS/X/S). Includes deadlock detection via wait-for graph DFS, wound-wait prevention, fencing tokens for stale-lock safety, phantom lock detection for crashed holders, and lock coarsening for high-contention resources.
+
+```typescript
+import { DistributedLockManager, LockManagerPresets } from 'tensegrity';
+
+const dlm = new DistributedLockManager(LockManagerPresets['standard']);
+
+const grant = dlm.acquire({
+  id: 'req-1', agentId: 'agent-A', resourceId: 'shared-db',
+  mode: 'exclusive', priority: 1, timestamp: Date.now(), timeout: 30000
+});
+// grant.fencingToken — monotonic token to detect stale locks
+// dlm.tick() — runs expiry, deadlock detection, phantom cleanup
+```
+
+Three presets: `fast-locks` (short TTL, no wound-wait), `standard` (wound-wait enabled, balanced), `high-contention` (priority-based fairness, aggressive coarsening).
+
+### VectorClockCausality
+
+Full vector clock implementation for tracking causal relationships. Goes beyond Lamport timestamps to capture true happened-before semantics. Includes dotted version vectors (Riak-style concurrent write tracking), matrix clocks ("what I know you know"), causal barriers (wait for dependencies), causal event logs with delivery ordering, stability detection (globally safe GC prefixes), and plausible clock reconstruction for late joiners.
+
+```typescript
+import { createClock, tick, merge, compare, CausalEventLog } from 'tensegrity';
+
+const clockA = tick(createClock('agent-A'));
+const clockB = tick(createClock('agent-B'));
+compare(clockA, clockB); // 'concurrent'
+
+const log = new CausalEventLog('agent-A');
+log.onDeliver(event => console.log('delivered:', event.payload));
+log.emit({ action: 'update-config' }); // local event
+log.receive(remoteEvent); // buffered until causal deps met
+```
+
+Three presets: `small-cluster` (full matrix clocks + DVV), `medium-network` (vector clocks + DVV), `large-federation` (lightweight mode).
+
+### ServiceDiscoveryMesh
+
+Decentralized service registration and discovery without a central registry. Combines local TTL-based registries, gossip dissemination, DNS-SD style queries with attribute matching, health-aware routing (liveness/readiness probes), locality-aware selection (zone/region/rack scoring), watch/subscribe for topology changes, anti-entropy sync, and split-brain detection. AP over CP with CRDT-like merge semantics.
+
+```typescript
+import { createMesh } from 'tensegrity';
+
+const mesh = createMesh('node-1', 'medium-network');
+mesh.register({
+  instanceId: 'compute-001', serviceType: 'agent.compute',
+  serviceName: 'GPT Worker', agentAddress: '0x...', endpoint: 'ws://...',
+  version: '1.2.0', locality: { region: 'us-east', zone: 'a' }
+});
+
+const best = mesh.resolveOne('agent.compute', { region: 'us-east' });
+// best.instance — highest-scoring healthy instance
+// best.breakdown — { healthScore, localityScore, loadScore, ... }
+```
+
+Three presets: `small-cluster`, `medium-network`, `large-federation`.
+
 ## why this exists
 
 every "agent framework" right now is a thin wrapper around prompt chaining. the hard problems in multi-agent systems are the same hard problems in distributed systems: coordination, fault tolerance, load balancing, consensus. these are solved problems in distributed computing. nobody has ported them to the agent world properly.
