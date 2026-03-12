@@ -153,6 +153,86 @@ const state = governor.getState();
 
 Three presets: `api-gateway` (high throughput, tight latency), `agent-to-agent` (moderate, tolerant), `batch-processing` (high volume, relaxed latency).
 
+### CapabilityHealthMonitor
+
+Real-time health tracking for agent capabilities with degradation detection, predictive failure analysis, SLA compliance scoring, and automated remediation. Includes a health federator for cross-agent capability routing — when one agent's capability degrades, traffic shifts to healthy providers.
+
+```typescript
+import { CapabilityHealthMonitor, HealthMonitorPresets } from 'tensegrity';
+
+const monitor = new CapabilityHealthMonitor(HealthMonitorPresets['agent-mesh']);
+
+// record probe results from your health checks
+const { state, prediction, remediation } = monitor.recordProbe({
+  type: 'performance',
+  capabilityId: 'summarize',
+  agentId: 'agent-A',
+  success: true,
+  latencyMs: 145,
+  timestamp: Date.now()
+});
+
+console.log(state.score);          // 0.92 composite health
+console.log(state.status);         // 'healthy'
+console.log(remediation.action);   // 'none'
+
+// find healthiest provider for a capability
+const best = monitor.getBestProvider('summarize');
+```
+
+Three presets: `real-time-api` (tight SLAs, fast probes), `batch-processing` (relaxed, high tolerance), `agent-mesh` (balanced for multi-agent networks).
+
+### ConsensusViewSynchronizer
+
+BFT view synchronization for consensus protocols. Ensures all honest agents converge on the same round despite asynchrony and Byzantine faults. Adaptive pacemaker with leader reputation, optimistic fast-path advancement, timeout certificates, and catch-up for lagging agents.
+
+```typescript
+import { ConsensusViewSynchronizer, ViewSyncPresets } from 'tensegrity';
+
+const sync = new ConsensusViewSynchronizer(ViewSyncPresets['fast-consensus']);
+
+sync.registerAgent('agent-A', 1);
+sync.registerAgent('agent-B', 1);
+sync.registerAgent('agent-C', 1);
+
+// normal path: QC received → advance view
+sync.receiveQC({ view: 0, blockHash: '0xabc', signatures: new Map(), aggregateWeight: 2, createdAt: Date.now() });
+
+console.log(sync.getCurrentView());   // 1
+console.log(sync.getCurrentLeader()); // deterministic leader for view 1
+```
+
+Three presets: `fast-consensus` (low latency, round-robin), `byzantine-tolerant` (higher quorum, reputation-weighted), `high-throughput` (sticky leaders for amortized overhead).
+
+### ResourceContentionArbiter
+
+Game-theoretic resource allocation when multiple agents compete for shared resources. Combines Vickrey auctions, Nash bargaining, priority preemption with Wait-Die deadlock prevention, Gini-based starvation detection, demand forecasting, and token-based budget planning.
+
+```typescript
+import { ResourceContentionArbiter, ARBITER_PRESETS } from 'tensegrity';
+
+const arbiter = new ResourceContentionArbiter({}, 'fair-share');
+
+arbiter.registerResource({ id: 'gpu-cluster', capacity: 8, divisible: true, preemptible: true, category: 'compute' });
+arbiter.setBudget('agent-A', 'gpu-cluster', 4);
+
+const { granted, allocation } = arbiter.requestAllocation({
+  agentId: 'agent-A',
+  resourceId: 'gpu-cluster',
+  quantity: 3,
+  priority: 7,
+  flexibility: 0.2,
+  utilityPerUnit: 10
+});
+
+// check for starvation and contention forecasts
+const status = arbiter.getResourceStatus('gpu-cluster');
+console.log(status.forecast.trending);        // 'rising' | 'falling' | 'stable'
+console.log(status.starvation.severity);      // 'none' | 'mild' | 'moderate' | 'severe'
+```
+
+Three presets: `fair-share` (Nash bargaining, low starvation tolerance), `priority-driven` (preemption enabled), `market-based` (auction-resolved).
+
 ## why this exists
 
 every "agent framework" right now is a thin wrapper around prompt chaining. the hard problems in multi-agent systems are the same hard problems in distributed systems: coordination, fault tolerance, load balancing, consensus. these are solved problems in distributed computing. nobody has ported them to the agent world properly.
