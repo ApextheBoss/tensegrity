@@ -17,3 +17,5 @@ export { FederationRouter, HybridRateLimiter, RequestCoalescer, FairnessEnforcer
 export type { FederationConfig, FederatedRequest, FederationPeer, FederationEvent, RequestPriority, QuotaNegotiation } from './rate-aware-federation';
 export { EventuallyConsistentIndex, InvertedIndex, BTreeIndex, HashIndex, IndexVersionVector, ConvergenceChecker, ConflictResolver, QueryPlanner, IndexCompactor, StaleReadDetector, PRESETS as ECIndexPresets } from './eventually-consistent-index';
 export type { IndexDefinition, PostingEntry, IndexEvent, VersionVector, QueryPlan, Query, ConvergenceStatus, ConflictStrategy, ConflictRecord, CompactionStats, ECIndexConfig } from './eventually-consistent-index';
+export { GossipEngine, SwimMembership, PlumtreeGossip, MerkleAntiEntropy, BimodalMulticast, AdaptiveFanout, RumorManager, PartitionDetector, createGossipEngine, PRESETS as GossipPresets } from './gossip-protocol-engine';
+export type { GossipConfig, GossipEvent, GossipEventType, GossipTickResult, GossipStats, AgentEndpoint, MemberState, Rumor, DigestEntry } from './gossip-protocol-engine';

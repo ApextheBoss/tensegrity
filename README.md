@@ -265,6 +265,34 @@ console.log(forecast.exhaustionRisk); // 'low' | 'medium' | 'high' | 'critical'
 
 Includes budget forecasting via linear regression over consumption history, circuit breakers that trip on repeated 429s (not just 5xx), and bilateral/multilateral quota negotiation. Three presets: `conservative` (tight limits, aggressive shedding), `balanced` (gradual degradation), `aggressive` (high throughput, loose fairness).
 
+### GossipEngine
+
+Epidemic dissemination for agent networks. Implements SWIM-inspired failure detection, Plumtree hybrid gossip (eager push + lazy pull repair), Merkle-based anti-entropy sync, bimodal multicast, and adaptive fanout. Composable subsystems that work together or independently.
+
+```typescript
+import { createGossipEngine } from 'tensegrity';
+
+const engine = createGossipEngine('agent-001', 'medium-network');
+
+// Add peers
+engine.membership.addMember({ id: 'agent-002', address: 'ws://...', metadata: {}, generation: 1, heartbeat: 0 });
+engine.plumtree.addPeer('agent-002');
+
+// Spread information
+engine.rumors.createRumor('task-available-42', { task: 'summarize' }, 30_000, 10);
+
+// Run a tick — returns actions to execute (probes, pushes, syncs)
+const actions = engine.tick(Date.now());
+// actions.probes — SWIM pings to send
+// actions.rumorPushes — rumors to forward to peers
+// actions.antiEntropyTarget — peer to run Merkle digest sync with
+
+const stats = engine.getStats();
+// { aliveMembers, activeRumors, currentFanout, ... }
+```
+
+Seven composable subsystems: `SwimMembership` (failure detection), `PlumtreeGossip` (hybrid push/pull), `MerkleAntiEntropy` (state convergence), `BimodalMulticast` (high-reliability broadcast), `AdaptiveFanout` (dynamic fan-out tuning), `RumorManager` (infection-style spreading), `PartitionDetector` (split-brain detection). Three presets: `small-cluster` (5-20 agents), `medium-network` (20-200), `large-federation` (200+).
+
 ## why this exists
 
 every "agent framework" right now is a thin wrapper around prompt chaining. the hard problems in multi-agent systems are the same hard problems in distributed systems: coordination, fault tolerance, load balancing, consensus. these are solved problems in distributed computing. nobody has ported them to the agent world properly.
