@@ -40,3 +40,5 @@ export { TokenEconomyEngine, SupplyController, StakingManager, PaymentChannelMan
 export type { TokenConfig, Account as TokenAccount, StakePosition, PaymentChannel, AMMPool, RevenuePool, TokenEvent, SupplySchedule, DistributionStrategy, VestingSchedule } from './token-economy-engine';
 export { ExactlyOnceQueue, PRESETS as ExactlyOncePresets } from './work-queue-exactly-once';
 export type { TaskEnvelope, ClaimedTask, CompletionReceipt, DeadLetterEntry, AttemptRecord, QueueEvent, QueueConfig } from './work-queue-exactly-once';
+export { AdaptiveWorkStealingPool, WorkDeque, TopologyCostModel, AffinityTracker, VictimSelector, LoadImbalanceDetector, TaskFragmentationAnalyzer, StealPolicyController, TaskSplitter, PRESETS as WorkStealingPresets } from './adaptive-work-stealing';
+export type { Task as WSTask, AgentNode as WSAgentNode, StealResult, StealPolicy, PoolConfig as WSPoolConfig, PoolEvent as WSPoolEvent } from './adaptive-work-stealing';
