@@ -1,7 +1,7 @@
 export { CircuitBreaker } from './circuit-breaker';
 export { BackpressureController } from './backpressure';
 export { TaskAuctioneer, AgentTaskAuctionScheduler } from './task-auction';
-export { ReputationWeightedRouter } from './reputation-router';
+export { routeTask, routeTaskWithFallback } from './reputation-router';
 export { CRDTRegistry } from './crdt-registry';
 export { ObservableStateMachine } from './state-machine';
 export { TransactionalOutboxEngine, OutboxStore, RelayDispatcher, IdempotencyRegistry, OrderingGuaranteeManager, DeadLetterHandler, ChangeDataCaptureStream, CompactionManager, PartitionRouter, PRESETS as OutboxPresets } from './transactional-outbox';

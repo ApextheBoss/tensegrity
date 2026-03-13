@@ -1087,8 +1087,6 @@ export class AgentTaskAuctionScheduler {
 }
 
 export {
-  AgentTaskAuctionScheduler,
-  TaskAuctioneer,
   BidScreener,
   CapacityValidator,
   WinnerDetermination,
