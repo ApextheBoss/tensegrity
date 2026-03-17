@@ -1,0 +1,17 @@
+name: Security Scan
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apex Security Scanner
+        uses: ApextheBoss/apex-security-api@v1
+        with:
+          paths: '**/*.{js,ts,py}'
+          fail-on: 'HIGH'
