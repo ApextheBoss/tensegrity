@@ -60,7 +60,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Fix CircuitBreaker sliding window bug (stop clearing on success) — success no longer clears failureTimestamps in closed state; failures age out via monitorWindowMs
 - [x] Add tests for distributed-lock-manager (36 tests covering all subsystems)
 - [x] Add tests for gossip-protocol-engine (65 tests covering all 7 subsystems)
-- [ ] Extract shared utilities (fnv1a, EWMA, Welford) into common module
+- [x] Extract shared utilities (fnv1a, EWMA, Welford) into common module — created src/shared-utils.ts, removed duplicates from 25 files, 12 new tests
 - [ ] Add dispose/destroy methods to all modules with timers
 
 ## Phase 2: Cloud Product (March 23-30)
