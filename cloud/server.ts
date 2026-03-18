@@ -13,8 +13,8 @@
 
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { CircuitBreaker, CircuitBreakerRegistry } from '../src/circuit-breaker';
-import { BackpressureController } from '../src/backpressure';
+import { CircuitBreakerRegistry } from '../dist/circuit-breaker.js';
+import { BackpressureController } from '../dist/backpressure.js';
 
 // Types
 interface Agent {
