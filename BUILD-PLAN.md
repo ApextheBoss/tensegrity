@@ -61,7 +61,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Add tests for distributed-lock-manager (36 tests covering all subsystems)
 - [x] Add tests for gossip-protocol-engine (65 tests covering all 7 subsystems)
 - [x] Extract shared utilities (fnv1a, EWMA, Welford) into common module — created src/shared-utils.ts, removed duplicates from 25 files, 12 new tests
-- [ ] Add dispose/destroy methods to all modules with timers
+- [x] Add dispose/destroy methods to all modules with timers — added destroy() to FederationRouter, RequestCoalescer, ResourcePoolManager; 7 new tests
 
 ## Phase 2: Cloud Product (March 23-30)
 - [ ] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
