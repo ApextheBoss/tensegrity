@@ -23,5 +23,9 @@
   },
   "devDependencies": {
     "vitest": "^4.1.0"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.11",
+    "hono": "^4.12.8"
   }
 }
