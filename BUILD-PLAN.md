@@ -59,7 +59,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 ### Next Actions
 - [x] Fix CircuitBreaker sliding window bug (stop clearing on success) — success no longer clears failureTimestamps in closed state; failures age out via monitorWindowMs
 - [x] Add tests for distributed-lock-manager (36 tests covering all subsystems)
-- [ ] Add tests for gossip-protocol-engine (next highest complexity)
+- [x] Add tests for gossip-protocol-engine (65 tests covering all 7 subsystems)
 - [ ] Extract shared utilities (fnv1a, EWMA, Welford) into common module
 - [ ] Add dispose/destroy methods to all modules with timers
 
