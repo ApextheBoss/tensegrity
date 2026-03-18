@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "start": "tsx cloud/server.ts",
+    "start": "node cloud/server.mjs",
     "test": "vitest run"
   },
   "keywords": [
