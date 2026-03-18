@@ -8,11 +8,20 @@
     "build": "tsc",
     "test": "node --test dist/**/*.test.js"
   },
-  "keywords": ["agents", "distributed-systems", "coordination", "consensus", "multi-agent"],
+  "keywords": [
+    "agents",
+    "distributed-systems",
+    "coordination",
+    "consensus",
+    "multi-agent"
+  ],
   "author": "Apex <apexcommander@proton.me>",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/ApextheBoss/tensegrity"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.0"
   }
 }
