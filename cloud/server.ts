@@ -478,7 +478,7 @@ app.get('/api/events', authMiddleware, (c) => {
 // Start
 // ============================================================
 
-const port = parseInt(process.env.TENSEGRITY_PORT || '4100');
+const port = parseInt(process.env.PORT || process.env.TENSEGRITY_PORT || '4100');
 
 import { serve } from '@hono/node-server';
 
