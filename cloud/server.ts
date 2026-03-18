@@ -480,8 +480,33 @@ app.get('/api/events', authMiddleware, (c) => {
 
 const port = parseInt(process.env.PORT || process.env.TENSEGRITY_PORT || '4100');
 
-import { serve } from '@hono/node-server';
+import { createServer } from 'node:http';
 
-serve({ fetch: app.fetch, port }, (info) => {
-  console.log(`Tensegrity Cloud running on http://localhost:${info.port}`);
+const server = createServer(async (req, res) => {
+  // Read body manually
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) chunks.push(chunk);
+  const body = Buffer.concat(chunks);
+  
+  const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+  
+  const request = new Request(url.toString(), {
+    method: req.method,
+    headers: Object.fromEntries(
+      Object.entries(req.headers)
+        .filter(([_, v]) => v !== undefined)
+        .map(([k, v]) => [k, Array.isArray(v) ? v.join(', ') : v!])
+    ),
+    body: ['GET', 'HEAD'].includes(req.method || '') ? undefined : body,
+  });
+  
+  const response = await app.fetch(request);
+  
+  res.writeHead(response.status, Object.fromEntries(response.headers.entries()));
+  const responseBody = await response.arrayBuffer();
+  res.end(Buffer.from(responseBody));
+});
+
+server.listen(port, () => {
+  console.log(`Tensegrity Cloud running on http://localhost:${port}`);
 });
