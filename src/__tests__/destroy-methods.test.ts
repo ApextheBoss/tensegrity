@@ -24,11 +24,16 @@ describe('RequestCoalescer.destroy', () => {
       id: '1',
       sourceNetwork: 'net-a',
       targetNetwork: 'net-b',
-      type: 'query',
+      capability: 'query',
       payload: {},
       priority: 'normal',
-      timestampMs: Date.now(),
+      createdMs: Date.now(),
+      deadlineMs: null,
       coalescingKey: 'group1',
+      attempts: 0,
+      lastAttemptMs: null,
+      status: 'pending',
+      result: null,
     });
 
     coalescer.destroy();
@@ -53,6 +58,7 @@ describe('FederationRouter.destroy', () => {
   const baseConfig: FederationConfig = {
     localNetworkId: 'test-net',
     defaultBudgetCapacity: 100,
+    defaultRefillRate: 10,
     windowDurationMs: 60_000,
     maxPeerBudgetFraction: 0.5,
     maxNegotiationRounds: 3,
@@ -64,6 +70,7 @@ describe('FederationRouter.destroy', () => {
     circuitOpenDurationMs: 10_000,
     forecastWindowSize: 20,
     budgetWarningThreshold: 0.2,
+    shedBackgroundAt: 0.3,
     shedLowAt: 0.1,
     shedNormalAt: 0.05,
     shedHighAt: 0.02,
@@ -74,11 +81,16 @@ describe('FederationRouter.destroy', () => {
   it('cleans up without errors', () => {
     const router = new FederationRouter(baseConfig);
     router.addPeer({
+      id: 'peer-1',
       networkId: 'peer-1',
       endpoint: 'http://peer-1',
-      trustScore: 0.8,
-      latencyMs: 50,
-      online: true,
+      capabilities: ['query'],
+      trustLevel: 0.8,
+      quotaGranted: 100,
+      quotaUsed: 0,
+      windowStartMs: Date.now(),
+      windowDurationMs: 60_000,
+      lastContactMs: Date.now(),
     });
     router.destroy();
     // Should not throw

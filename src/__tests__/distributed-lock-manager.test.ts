@@ -12,6 +12,7 @@ import {
   PRESETS,
   type LockRequest,
   type LockGrant,
+  type LockManagerConfig,
   type DLMEvent,
 } from '../distributed-lock-manager';
 
@@ -28,7 +29,7 @@ function makeRequest(overrides: Partial<LockRequest> = {}): LockRequest {
   };
 }
 
-function makeDLM(overrides: Partial<typeof PRESETS['fast-locks']> = {}): DistributedLockManager {
+function makeDLM(overrides: Partial<LockManagerConfig> = {}): DistributedLockManager {
   return new DistributedLockManager({ ...PRESETS['fast-locks'], ...overrides });
 }
 
