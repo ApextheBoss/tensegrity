@@ -482,29 +482,48 @@ const port = parseInt(process.env.PORT || process.env.TENSEGRITY_PORT || '4100')
 
 import { createServer } from 'node:http';
 
-const server = createServer(async (req, res) => {
-  // Read body manually
-  const chunks: Buffer[] = [];
-  for await (const chunk of req) chunks.push(chunk);
-  const body = Buffer.concat(chunks);
-  
-  const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
-  
-  const request = new Request(url.toString(), {
-    method: req.method,
-    headers: Object.fromEntries(
-      Object.entries(req.headers)
-        .filter(([_, v]) => v !== undefined)
-        .map(([k, v]) => [k, Array.isArray(v) ? v.join(', ') : v!])
-    ),
-    body: ['GET', 'HEAD'].includes(req.method || '') ? undefined : body,
+function readBody(req: any): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on('data', (chunk: Buffer) => chunks.push(chunk));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+    // Timeout after 5s in case proxy doesn't close the stream
+    setTimeout(() => resolve(Buffer.concat(chunks)), 5000);
   });
-  
-  const response = await app.fetch(request);
-  
-  res.writeHead(response.status, Object.fromEntries(response.headers.entries()));
-  const responseBody = await response.arrayBuffer();
-  res.end(Buffer.from(responseBody));
+}
+
+const server = createServer(async (req, res) => {
+  try {
+    const isBodyMethod = !['GET', 'HEAD', 'OPTIONS'].includes(req.method || '');
+    const body = isBodyMethod ? await readBody(req) : undefined;
+    
+    const url = new URL(req.url || '/', `http://localhost:${port}`);
+    
+    const headers: Record<string, string> = {};
+    for (const [key, value] of Object.entries(req.headers)) {
+      if (value) headers[key] = Array.isArray(value) ? value.join(', ') : value;
+    }
+    
+    const request = new Request(url.toString(), {
+      method: req.method,
+      headers,
+      body: body && body.length > 0 ? body : undefined,
+    });
+    
+    const response = await app.fetch(request);
+    
+    const responseHeaders: Record<string, string> = {};
+    response.headers.forEach((v, k) => { responseHeaders[k] = v; });
+    
+    res.writeHead(response.status, responseHeaders);
+    const responseBody = await response.arrayBuffer();
+    res.end(Buffer.from(responseBody));
+  } catch (err: any) {
+    console.error('Request error:', err?.message);
+    res.writeHead(500);
+    res.end(JSON.stringify({ error: 'Internal server error' }));
+  }
 });
 
 server.listen(port, () => {

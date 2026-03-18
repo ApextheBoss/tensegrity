@@ -856,6 +856,17 @@ export class ResourcePoolManager {
     }
     return alternatives;
   }
+
+  destroy(): void {
+    for (const pool of this.pools.values()) {
+      for (const entry of pool.waitQueue) {
+        if (entry.timeoutHandle) clearTimeout(entry.timeoutHandle);
+      }
+      pool.waitQueue.length = 0;
+      pool.reservations.clear();
+    }
+    this.pools.clear();
+  }
 }
 
 // ─── Pre-built Pool Templates ────────────────────────────────────────────────

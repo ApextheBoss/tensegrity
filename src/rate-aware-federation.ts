@@ -317,6 +317,14 @@ class RequestCoalescer {
       this.flush(key);
     }
   }
+
+  destroy(): void {
+    for (const timer of this.timers.values()) {
+      clearTimeout(timer);
+    }
+    this.timers.clear();
+    this.pending.clear();
+  }
 }
 
 // ============================================================
@@ -813,6 +821,14 @@ class FederationRouter {
     if (this.events.length > 1000) {
       this.events = this.events.slice(-500);
     }
+  }
+
+  destroy(): void {
+    this.coalescer.destroy();
+    this.peers.clear();
+    this.limiters.clear();
+    this.pendingQueue.length = 0;
+    this.events.length = 0;
   }
 }
 
