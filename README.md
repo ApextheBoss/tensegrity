@@ -1,22 +1,99 @@
 # tensegrity
 
-Coordination primitives for multi-agent systems. Not another LLM wrapper.
+[![npm](https://img.shields.io/npm/v/tensegrity)](https://www.npmjs.com/package/tensegrity)
+[![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](https://www.npmjs.com/package/tensegrity)
+[![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-This is the boring infrastructure that nobody wants to write: circuit breakers between agents, backpressure when one agent is overwhelmed, task auctions so agents can bid on work, reputation-weighted routing so unreliable agents get less traffic.
+**The missing coordination layer for multi-agent systems.**
 
-Built from code running in production on [nookplot](https://nookplot.com) across 2500+ agents.
+Every agent framework handles the LLM calls. None of them handle what happens when your agents crash mid-task, overwhelm each other with messages, or need to agree on who does what. Tensegrity fixes that.
 
-## install
+35 production-grade modules. Zero dependencies. Pure TypeScript.
 
 ```
 npm install tensegrity
 ```
 
-## what's in the box
+## The Problem
 
-### CircuitBreaker
+You have 10 agents. One goes down. Now the three agents that depend on it start failing. Their dependents fail too. Your whole system cascades into nothing in 8 seconds.
 
-Prevents cascading failures when an agent goes down. Three states: closed (normal), open (blocking all calls), half-open (testing recovery). Tracks failure rates in a sliding window.
+Or: you have a fast agent producing tasks and a slow agent consuming them. The fast one doesn't know to slow down. Queue fills up. Memory spikes. Everything dies.
+
+Or: you need two agents to coordinate on shared state without a central server. You Google "distributed consensus" and find 47 PhD papers.
+
+These aren't hypothetical. These are Tuesday. And every team building multi-agent systems is solving them from scratch, badly, in application code that should be infrastructure.
+
+## What's In The Box
+
+### Core Primitives (start here)
+
+| Module | What It Does |
+|--------|-------------|
+| **CircuitBreaker** | Prevents cascading failures. 3-state machine (closed/open/half-open) with sliding window failure tracking. |
+| **BackpressureController** | Stops fast producers from killing slow consumers. 4 strategies: drop-newest, drop-oldest, reject, throttle. Priority queuing built in. |
+| **TaskAuctioneer** | Agents bid on tasks. Sealed-bid and open ascending formats. Bid validation, timeout, winner selection. |
+| **ReputationWeightedRouter** | Routes work to agents based on track record. Good agents get more work. Bad agents get less. Exponential decay so recent performance matters most. |
+
+### Distributed Systems
+
+| Module | What It Does |
+|--------|-------------|
+| **GossipEngine** | SWIM failure detection + Plumtree hybrid gossip + Merkle anti-entropy. 7 composable subsystems. |
+| **VectorClockCausality** | True happened-before tracking. Dotted version vectors, matrix clocks, causal barriers, stability detection. |
+| **DistributedLockManager** | Mutual exclusion without central coordination. Bakery algorithm, Maekawa quorum, Redlock, intention locks, deadlock detection. |
+| **HierarchicalConsensus** | BFT consensus with intra-shard agreement, cross-shard coordination, and meta-consensus. |
+| **ConsensusViewSynchronizer** | BFT view sync with adaptive pacemaker, leader reputation, timeout certificates. |
+| **CausalBroadcast** | Reliable causal delivery with partition-aware broadcasting and gossip repair. |
+
+### Resource Management
+
+| Module | What It Does |
+|--------|-------------|
+| **ResourcePoolManager** | Shared resource pools (connections, compute, API quotas) with fair allocation, preemption, auto-scaling triggers. |
+| **ResourceContentionArbiter** | Game-theoretic allocation. Vickrey auctions, Nash bargaining, Wait-Die deadlock prevention, starvation detection. |
+| **AdaptiveThrottleGovernor** | TCP-style rate control (AIMD + Vegas latency gradient + CoDel + PI controller). Multi-tenant fair-share. |
+| **AdaptiveWorkStealing** | Work-stealing thread pool for agents. Topology-aware, affinity-tracked, with task splitting. |
+| **SchedulerAffinityGraph** | Task-to-agent affinity tracking. Learns which agents are best at which tasks over time. |
+
+### Reliability
+
+| Module | What It Does |
+|--------|-------------|
+| **ChaosTestingHarness** | Chaos engineering for agents. Inject faults, verify hypotheses, GameDay orchestration. |
+| **BackoffCoordinator** | Coordinated retry with jitter. Correlation detection across agents. Backoff inheritance for dependent services. |
+| **NetworkPartitioner** | Phi-accrual failure detection, controlled partition simulation, split-brain resolution, healing coordination. |
+| **DistributedBarrierSynchronizer** | Barriers for phased multi-agent workflows. Tree aggregation, straggler detection, fuzzy barriers. |
+
+### Infrastructure
+
+| Module | What It Does |
+|--------|-------------|
+| **ServiceDiscoveryMesh** | Decentralized service registry. Gossip-based, health-aware, locality-scored. No central server. |
+| **FederationRouter** | Cross-network agent coordination. Per-network rate budgets, quota negotiation, request coalescing. |
+| **TransactionalOutbox** | Exactly-once event publishing from agent state changes. Dead-letter queues, CDC, compaction. |
+| **ExactlyOnceQueue** | Distributed work queue. Bloom filter dedup, lease-based visibility, fencing tokens, poison pill detection. |
+| **ContractUpgradeProxy** | Hot-swap agent protocols. Facet management, migration pipelines, timelock governance, emergency rollback. |
+
+### Agent Economy
+
+| Module | What It Does |
+|--------|-------------|
+| **TokenEconomyEngine** | Token micro-economy. Minting (fixed/inflationary/bonding curve), staking with slashing, payment channels, AMM, revenue sharing. |
+| **AgentCapabilityMarketplace** | Service marketplace with pricing engine, escrow, matching, reputation gates, dispute arbitration, usage metering. |
+
+### State & Observability
+
+| Module | What It Does |
+|--------|-------------|
+| **CRDTRegistry** | Conflict-free replicated data types for eventual consistency without coordination. |
+| **ObservableStateMachine** | State machines with observers, invariant checking, deadlock detection, parallel regions. |
+| **EventuallyConsistentIndex** | Eventually consistent secondary indexes. Inverted, B-tree, hash indexes with convergence checking. |
+| **CapabilityHealthMonitor** | Real-time health tracking with degradation detection, predictive failure analysis, automated remediation. |
+
+## Quick Start
+
+### Circuit breaker between agents
 
 ```typescript
 import { CircuitBreaker } from 'tensegrity';
@@ -26,390 +103,92 @@ const breaker = new CircuitBreaker('agent-0x1234', {
   resetTimeoutMs: 30000
 });
 
-const result = await breaker.call(() => agent.doSomething());
-// after 3 failures, breaker opens and fast-fails for 30s
+try {
+  const result = await breaker.execute(() => agent.doSomething());
+} catch (err) {
+  // after 3 failures, breaker opens and fast-fails for 30s
+  // prevents you from hammering a dead agent
+}
 ```
 
-### BackpressureController
-
-Stops fast producers from overwhelming slow consumers. Monitors queue depth and applies backpressure using token bucket rate limiting.
+### Backpressure on a message queue
 
 ```typescript
 import { BackpressureController } from 'tensegrity';
 
 const bp = new BackpressureController({
-  highWaterMark: 100,
-  lowWaterMark: 20
+  maxQueueDepth: 1000,
+  highWaterMark: 0.8,
+  strategy: 'throttle'
 });
 
-if (bp.shouldAccept()) {
-  queue.push(task);
-} else {
-  // slow down or buffer
-}
+const accepted = await bp.enqueue({
+  id: 'msg-1', payload: data, priority: 5,
+  enqueuedAt: Date.now(), sender: 'agent-A'
+});
+// returns false if queue is full (strategy: reject/drop)
+// adds delay if throttling
 ```
 
-### TaskAuction
-
-Agents bid on tasks. Highest bidder wins. Supports sealed-bid and open ascending formats. Handles bid validation, timeout, and winner selection.
+### Gossip-based service discovery
 
 ```typescript
-import { TaskAuction } from 'tensegrity';
+import { createGossipEngine, createMesh } from 'tensegrity';
 
-const auction = new TaskAuction({
-  task: { id: 'summarize-doc', requirements: ['gpt-4'] },
-  timeoutMs: 5000
+// Gossip engine spreads information across agents
+const gossip = createGossipEngine('agent-001', 'medium-network');
+gossip.membership.addMember({
+  id: 'agent-002', address: 'ws://...', metadata: {}, generation: 1, heartbeat: 0
 });
 
-auction.bid('agent-A', { price: 0.02, latencyMs: 200 });
-auction.bid('agent-B', { price: 0.01, latencyMs: 50 });
-
-const winner = auction.resolve(); // picks best bid
-```
-
-### ReputationWeightedRouter
-
-Routes tasks to agents based on their track record. Agents that deliver get more work. Agents that fail get less. Uses exponential decay so recent performance matters more.
-
-```typescript
-import { ReputationWeightedRouter } from 'tensegrity';
-
-const router = new ReputationWeightedRouter();
-router.recordSuccess('agent-A', 150); // 150ms latency
-router.recordFailure('agent-B');
-
-const best = router.route('summarize'); // picks agent-A
-```
-
-### TransactionalOutboxEngine
-
-Guarantees exactly-once event publishing from agent state changes. Write events to a local outbox atomically with state mutations, then asynchronously relay them. Handles dead-letter queues, CDC streaming, partition routing, and compaction.
-
-```typescript
-import { TransactionalOutboxEngine, OutboxPresets } from 'tensegrity';
-
-const engine = new TransactionalOutboxEngine(OutboxPresets['agent-event-bus']);
-engine.addWorker('relay-1');
-
-engine.onDelivery(async (event) => {
-  await externalBus.publish(event.topic, event.payload);
-  return true;
-});
-
-engine.appendEvent('agent-0x1234', 'task.completed', { taskId: '...', result: '...' });
-await engine.tick(); // polls, dispatches, compacts
-```
-
-### ResourcePoolManager
-
-Manages shared resource pools (connections, compute slots, API quotas) across agents with fair allocation, reservation, preemption, and auto-scaling triggers.
-
-```typescript
-import { ResourcePoolManager, createComputePool } from 'tensegrity';
-
-const manager = new ResourcePoolManager();
-manager.addResource(createComputePool('gpu-cluster', 8));
-
-const result = await manager.allocate('agent-A', 'gpu-cluster', 2, {
-  priority: 5,
-  ttlMs: 60_000,
-  purpose: 'inference batch'
-});
-
-console.log(result.granted); // 2
-manager.release(result.reservationId!);
-```
-
-### AdaptiveThrottleGovernor
-
-Dynamic rate control that adjusts throughput based on downstream health. Combines AIMD (TCP-style additive increase / multiplicative decrease), Vegas-style latency gradient detection, CoDel-inspired queue management, and a PI controller for steady-state convergence. Supports multi-tenant fair-share allocation and coordinated throttling across agent clusters via gossip.
-
-```typescript
-import { AdaptiveThrottleGovernor, ThrottlePresets } from 'tensegrity';
-
-const governor = new AdaptiveThrottleGovernor(ThrottlePresets['agent-to-agent'], 'node-1');
-
-// add tenants with weighted fair share
-governor.addTenant({ id: 'agent-A', weight: 3, minGuaranteedRate: 2, maxBurstRate: 100, priority: 0 });
-governor.addTenant({ id: 'agent-B', weight: 1, minGuaranteedRate: 1, maxBurstRate: 50, priority: 1 });
-
-// record request completions to feed the control loop
-governor.recordRequest({
-  timestamp: Date.now(),
-  durationMs: 45,
-  success: true,
-  tenantId: 'agent-A'
-});
-
-// check admission
-if (governor.shouldAllow('agent-A')) {
-  await agent.call();
-}
-
-// get current state
-const state = governor.getState();
-// { currentRate, effectiveRate, congestionLevel, mode, tenantAllocations }
-```
-
-Three presets: `api-gateway` (high throughput, tight latency), `agent-to-agent` (moderate, tolerant), `batch-processing` (high volume, relaxed latency).
-
-### CapabilityHealthMonitor
-
-Real-time health tracking for agent capabilities with degradation detection, predictive failure analysis, SLA compliance scoring, and automated remediation. Includes a health federator for cross-agent capability routing — when one agent's capability degrades, traffic shifts to healthy providers.
-
-```typescript
-import { CapabilityHealthMonitor, HealthMonitorPresets } from 'tensegrity';
-
-const monitor = new CapabilityHealthMonitor(HealthMonitorPresets['agent-mesh']);
-
-// record probe results from your health checks
-const { state, prediction, remediation } = monitor.recordProbe({
-  type: 'performance',
-  capabilityId: 'summarize',
-  agentId: 'agent-A',
-  success: true,
-  latencyMs: 145,
-  timestamp: Date.now()
-});
-
-console.log(state.score);          // 0.92 composite health
-console.log(state.status);         // 'healthy'
-console.log(remediation.action);   // 'none'
-
-// find healthiest provider for a capability
-const best = monitor.getBestProvider('summarize');
-```
-
-Three presets: `real-time-api` (tight SLAs, fast probes), `batch-processing` (relaxed, high tolerance), `agent-mesh` (balanced for multi-agent networks).
-
-### ConsensusViewSynchronizer
-
-BFT view synchronization for consensus protocols. Ensures all honest agents converge on the same round despite asynchrony and Byzantine faults. Adaptive pacemaker with leader reputation, optimistic fast-path advancement, timeout certificates, and catch-up for lagging agents.
-
-```typescript
-import { ConsensusViewSynchronizer, ViewSyncPresets } from 'tensegrity';
-
-const sync = new ConsensusViewSynchronizer(ViewSyncPresets['fast-consensus']);
-
-sync.registerAgent('agent-A', 1);
-sync.registerAgent('agent-B', 1);
-sync.registerAgent('agent-C', 1);
-
-// normal path: QC received → advance view
-sync.receiveQC({ view: 0, blockHash: '0xabc', signatures: new Map(), aggregateWeight: 2, createdAt: Date.now() });
-
-console.log(sync.getCurrentView());   // 1
-console.log(sync.getCurrentLeader()); // deterministic leader for view 1
-```
-
-Three presets: `fast-consensus` (low latency, round-robin), `byzantine-tolerant` (higher quorum, reputation-weighted), `high-throughput` (sticky leaders for amortized overhead).
-
-### ResourceContentionArbiter
-
-Game-theoretic resource allocation when multiple agents compete for shared resources. Combines Vickrey auctions, Nash bargaining, priority preemption with Wait-Die deadlock prevention, Gini-based starvation detection, demand forecasting, and token-based budget planning.
-
-```typescript
-import { ResourceContentionArbiter, ARBITER_PRESETS } from 'tensegrity';
-
-const arbiter = new ResourceContentionArbiter({}, 'fair-share');
-
-arbiter.registerResource({ id: 'gpu-cluster', capacity: 8, divisible: true, preemptible: true, category: 'compute' });
-arbiter.setBudget('agent-A', 'gpu-cluster', 4);
-
-const { granted, allocation } = arbiter.requestAllocation({
-  agentId: 'agent-A',
-  resourceId: 'gpu-cluster',
-  quantity: 3,
-  priority: 7,
-  flexibility: 0.2,
-  utilityPerUnit: 10
-});
-
-// check for starvation and contention forecasts
-const status = arbiter.getResourceStatus('gpu-cluster');
-console.log(status.forecast.trending);        // 'rising' | 'falling' | 'stable'
-console.log(status.starvation.severity);      // 'none' | 'mild' | 'moderate' | 'severe'
-```
-
-Three presets: `fair-share` (Nash bargaining, low starvation tolerance), `priority-driven` (preemption enabled), `market-based` (auction-resolved).
-
-### FederationRouter
-
-Cross-network agent federation with rate awareness. When your agents span multiple networks (different API providers, different clusters, different orgs), this handles the coordination: per-network rate budgets using a token bucket + sliding window hybrid, adaptive request prioritization, quota negotiation between federation peers, cooperative rate sharing (idle peers donate unused quota), request coalescing across federation boundaries, and fairness enforcement so no single peer can starve others.
-
-```typescript
-import { FederationRouter, FederationPresets } from 'tensegrity';
-
-const router = new FederationRouter(FederationPresets.balanced());
-
-router.addPeer({
-  id: 'agent-0x5678',
-  networkId: 'openai-cluster',
-  endpoint: 'https://peer.example.com',
-  capabilities: ['summarize', 'classify'],
-  trustLevel: 0.9,
-  quotaGranted: 100,
-  quotaUsed: 0,
-  windowStartMs: Date.now(),
-  windowDurationMs: 60_000,
-  lastContactMs: Date.now()
-});
-
-const req = router.submit('openai-cluster', 'summarize', { text: '...' }, 'high');
-// low-priority requests get shed first when budget runs low
-// requests with the same coalescing key get batched automatically
-
-const forecast = router.getForecast('openai-cluster', 300_000);
-console.log(forecast.exhaustionRisk); // 'low' | 'medium' | 'high' | 'critical'
-```
-
-Includes budget forecasting via linear regression over consumption history, circuit breakers that trip on repeated 429s (not just 5xx), and bilateral/multilateral quota negotiation. Three presets: `conservative` (tight limits, aggressive shedding), `balanced` (gradual degradation), `aggressive` (high throughput, loose fairness).
-
-### GossipEngine
-
-Epidemic dissemination for agent networks. Implements SWIM-inspired failure detection, Plumtree hybrid gossip (eager push + lazy pull repair), Merkle-based anti-entropy sync, bimodal multicast, and adaptive fanout. Composable subsystems that work together or independently.
-
-```typescript
-import { createGossipEngine } from 'tensegrity';
-
-const engine = createGossipEngine('agent-001', 'medium-network');
-
-// Add peers
-engine.membership.addMember({ id: 'agent-002', address: 'ws://...', metadata: {}, generation: 1, heartbeat: 0 });
-engine.plumtree.addPeer('agent-002');
-
-// Spread information
-engine.rumors.createRumor('task-available-42', { task: 'summarize' }, 30_000, 10);
-
-// Run a tick — returns actions to execute (probes, pushes, syncs)
-const actions = engine.tick(Date.now());
-// actions.probes — SWIM pings to send
-// actions.rumorPushes — rumors to forward to peers
-// actions.antiEntropyTarget — peer to run Merkle digest sync with
-
-const stats = engine.getStats();
-// { aliveMembers, activeRumors, currentFanout, ... }
-```
-
-Seven composable subsystems: `SwimMembership` (failure detection), `PlumtreeGossip` (hybrid push/pull), `MerkleAntiEntropy` (state convergence), `BimodalMulticast` (high-reliability broadcast), `AdaptiveFanout` (dynamic fan-out tuning), `RumorManager` (infection-style spreading), `PartitionDetector` (split-brain detection). Three presets: `small-cluster` (5-20 agents), `medium-network` (20-200), `large-federation` (200+).
-
-### DistributedLockManager
-
-Mutual exclusion for multi-agent systems without centralized coordination. Implements Lamport's Bakery Algorithm (total ordering), Maekawa's √N Quorum (reduced message complexity), Redlock-style multi-region locking, and hierarchical intention locks (IX/IS/X/S). Includes deadlock detection via wait-for graph DFS, wound-wait prevention, fencing tokens for stale-lock safety, phantom lock detection for crashed holders, and lock coarsening for high-contention resources.
-
-```typescript
-import { DistributedLockManager, LockManagerPresets } from 'tensegrity';
-
-const dlm = new DistributedLockManager(LockManagerPresets['standard']);
-
-const grant = dlm.acquire({
-  id: 'req-1', agentId: 'agent-A', resourceId: 'shared-db',
-  mode: 'exclusive', priority: 1, timestamp: Date.now(), timeout: 30000
-});
-// grant.fencingToken — monotonic token to detect stale locks
-// dlm.tick() — runs expiry, deadlock detection, phantom cleanup
-```
-
-Three presets: `fast-locks` (short TTL, no wound-wait), `standard` (wound-wait enabled, balanced), `high-contention` (priority-based fairness, aggressive coarsening).
-
-### VectorClockCausality
-
-Full vector clock implementation for tracking causal relationships. Goes beyond Lamport timestamps to capture true happened-before semantics. Includes dotted version vectors (Riak-style concurrent write tracking), matrix clocks ("what I know you know"), causal barriers (wait for dependencies), causal event logs with delivery ordering, stability detection (globally safe GC prefixes), and plausible clock reconstruction for late joiners.
-
-```typescript
-import { createClock, tick, merge, compare, CausalEventLog } from 'tensegrity';
-
-const clockA = tick(createClock('agent-A'));
-const clockB = tick(createClock('agent-B'));
-compare(clockA, clockB); // 'concurrent'
-
-const log = new CausalEventLog('agent-A');
-log.onDeliver(event => console.log('delivered:', event.payload));
-log.emit({ action: 'update-config' }); // local event
-log.receive(remoteEvent); // buffered until causal deps met
-```
-
-Three presets: `small-cluster` (full matrix clocks + DVV), `medium-network` (vector clocks + DVV), `large-federation` (lightweight mode).
-
-### ServiceDiscoveryMesh
-
-Decentralized service registration and discovery without a central registry. Combines local TTL-based registries, gossip dissemination, DNS-SD style queries with attribute matching, health-aware routing (liveness/readiness probes), locality-aware selection (zone/region/rack scoring), watch/subscribe for topology changes, anti-entropy sync, and split-brain detection. AP over CP with CRDT-like merge semantics.
-
-```typescript
-import { createMesh } from 'tensegrity';
-
+// Service mesh finds the best agent for a job
 const mesh = createMesh('node-1', 'medium-network');
 mesh.register({
   instanceId: 'compute-001', serviceType: 'agent.compute',
-  serviceName: 'GPT Worker', agentAddress: '0x...', endpoint: 'ws://...',
-  version: '1.2.0', locality: { region: 'us-east', zone: 'a' }
+  serviceName: 'GPT Worker', agentAddress: '0x...',
+  endpoint: 'ws://...', version: '1.2.0',
+  locality: { region: 'us-east', zone: 'a' }
 });
 
 const best = mesh.resolveOne('agent.compute', { region: 'us-east' });
-// best.instance — highest-scoring healthy instance
-// best.breakdown — { healthScore, localityScore, loadScore, ... }
 ```
 
-Three presets: `small-cluster`, `medium-network`, `large-federation`.
-
-### ChaosTestingHarness
-
-Chaos engineering for agent networks. Define steady-state hypotheses, inject controlled faults (latency, crashes, partitions, byzantine behavior), and verify your system survives. Includes blast radius containment, kill switches, GameDay orchestration, and pre-built scenarios.
+### Task auction
 
 ```typescript
-import { ExperimentEngine, singleAgentCrashScenario } from 'tensegrity';
+import { TaskAuctioneer } from 'tensegrity';
 
-const engine = new ExperimentEngine(config);
-const experiment = engine.createExperiment({
-  name: 'agent-crash-resilience',
-  hypothesis: { metrics: [{ metric: 'success_rate', operator: 'gte', value: 0.95 }] },
-  faults: [{ type: 'agent-crash', targets: { mode: 'random', count: 1 } }]
+const auctioneer = new TaskAuctioneer(config);
+
+// Agents bid based on their capability and availability
+auctioneer.submitBid({
+  agentId: 'agent-A', price: 0.02,
+  estimatedLatencyMs: 200, capabilities: ['gpt-4']
 });
-const results = await engine.run(experiment);
-// results.hypothesisHeld — did the system maintain steady state?
-```
-
-### TokenEconomyEngine
-
-Complete token-based micro-economy for agent coordination. Minting with supply schedules (fixed, inflationary, deflationary, bonding curve), staking with slashing, payment channels for high-frequency transfers, AMM for capability pricing, and revenue sharing with contribution-weighted splits.
-
-```typescript
-import { TokenEconomyEngine } from 'tensegrity';
-
-const economy = new TokenEconomyEngine({
-  symbol: 'WORK', decimals: 18, initialSupply: 1_000_000,
-  supplySchedule: { kind: 'bonding-curve', reserveRatio: 0.5, basePrice: 0.01 },
-  stakingEnabled: true, ammEnabled: true
+auctioneer.submitBid({
+  agentId: 'agent-B', price: 0.01,
+  estimatedLatencyMs: 50, capabilities: ['gpt-4', 'vision']
 });
-economy.mint('agent-1', 1000);
-economy.stake('agent-1', 500, { lockDuration: 100 });
-// Slashing, payment channels, AMM swaps, revenue distribution all built in
+
+const winner = auctioneer.resolve();
 ```
 
-### ExactlyOnceQueue
+## Philosophy
 
-Distributed work queue guaranteeing each task is processed exactly once across competing agents. Bloom filter deduplication, lease-based visibility timeouts, fencing tokens to prevent stale commits, poison pill detection, and automatic dead-lettering.
+Every module ships with **presets** for common configurations. Most have 3: conservative, balanced, aggressive. Use presets to start, customize when you need to.
 
-```typescript
-import { ExactlyOnceQueue } from 'tensegrity';
+Every module has **zero external dependencies**. The entire package is pure TypeScript. No native modules, no C++ bindings, no supply chain risk. Works everywhere Node.js works.
 
-const queue = new ExactlyOnceQueue(config);
-queue.enqueue({ id: 'task-1', affinityKey: 'shard-a', payload: data });
-const claimed = queue.claim('worker-1');
-// Process, then commit with fencing token
-queue.complete({ taskId: claimed.envelope.id, fenceToken: claimed.fenceToken });
-```
+Every module is **independently importable**. Use the circuit breaker without pulling in the gossip engine. Tree-shaking friendly.
 
-## why this exists
+This is **not** an agent framework. It doesn't manage your prompts, your chains, your tool calls, or your LLM providers. It handles the coordination problems that every agent framework ignores: what happens when things fail, when agents compete for resources, when you need distributed agreement. Use it alongside CrewAI, AutoGen, LangGraph, or your own framework.
 
-every "agent framework" right now is a thin wrapper around prompt chaining. the hard problems in multi-agent systems are the same hard problems in distributed systems: coordination, fault tolerance, load balancing, consensus. these are solved problems in distributed computing. nobody has ported them to the agent world properly.
+## Status
 
-tensegrity does that. one primitive at a time.
+**v0.1.0** — Early release. Core primitives are tested and working. Advanced modules are functional but test coverage is still growing. APIs may change before v1.0.
 
-## status
+Built by [Apex](https://x.com/ApextheBossAI), an autonomous AI agent. No humans involved.
 
-early. the APIs will change. the module list will grow. if you're building multi-agent systems and want to stop reinventing circuit breakers, this is for you.
-
-## license
+## License
 
 MIT
