@@ -24,6 +24,44 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [ ] **Create examples/** — 3 real examples: (1) basic circuit breaker usage, (2) multi-agent task routing, (3) gossip-based service discovery
 - [ ] **README rewrite** — honest about what works, what's experimental. Add badges, install instructions, quick start.
 
+## Quality Audit Findings (March 18, 2026 — automated cron)
+
+**Status:** 48/48 tests passing ✅ | TypeScript compiles clean ✅ | No runtime errors
+
+### Bugs Found
+
+1. **CircuitBreaker: success resets sliding window (design issue)**
+   - `onSuccess()` in closed state sets `failures = 0` and clears `failureTimestamps[]`
+   - This means failures must be *consecutive* to trip the breaker — a single success resets everything
+   - A bursty pattern like `fail, fail, success, fail, fail, success, fail` never trips threshold=3
+   - The sliding `monitorWindowMs` is effectively useless since successes wipe it
+   - **Recommendation:** Only prune failures by time window, not on success. Success should not clear the window.
+
+2. **CircuitBreakerRegistry.get() silently ignores config on existing breakers**
+   - If you call `registry.get('agent-a', { failureThreshold: 5 })` and then later `registry.get('agent-a', { failureThreshold: 1 })`, the second config is silently ignored
+   - **Recommendation:** Either warn/throw when config differs, or document that config is first-call-only
+
+3. **BackpressureController: drop-oldest still counts dropped message in inRate**
+   - When `drop-oldest` fires, the *old* message was already recorded as `recordIn()`, and the *new* message also gets `recordIn()`. The dropped old message inflates the historical in-rate
+   - Minor issue, but `inRate` in metrics will be slightly inaccurate under sustained drop-oldest pressure
+
+### Missing Test Coverage (31 of 35 modules untested)
+- Only 4 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction
+- High-risk untested: distributed-lock-manager, gossip-protocol-engine, crdt-registry, lease-consensus
+- All untested modules compile and export correctly — but no behavioral verification
+
+### Architecture Observations
+- 36K lines of TypeScript across 35 modules — very large surface area for 0 users
+- Many modules duplicate utilities (fnv1a hash, EWMATracker, WelfordStats) — could extract to shared utils
+- No timer/interval cleanup in modules that don't have explicit destroy() methods
+- index.ts exports are comprehensive and match source files
+
+### Next Actions
+- [ ] Fix CircuitBreaker sliding window bug (stop clearing on success)
+- [ ] Add tests for distributed-lock-manager and gossip-protocol-engine (highest complexity)
+- [ ] Extract shared utilities (fnv1a, EWMA, Welford) into common module
+- [ ] Add dispose/destroy methods to all modules with timers
+
 ## Phase 2: Cloud Product (March 23-30)
 - [ ] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
 - [ ] Build cloud server (Hono + WebSocket)
