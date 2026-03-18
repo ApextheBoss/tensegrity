@@ -1,3 +1,4 @@
+import { fnv1aHash } from './shared-utils';
 /**
  * Agent Capability Marketplace
  * 
@@ -16,15 +17,6 @@
  */
 
 // ── Helpers ──────────────────────────────────────────────────────────────
-
-function fnv1aHash(s: string): number {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = (h * 0x01000193) >>> 0;
-  }
-  return h;
-}
 
 function generateId(prefix: string): string {
   const ts = Date.now().toString(36);

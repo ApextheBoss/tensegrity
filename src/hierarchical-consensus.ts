@@ -1,3 +1,4 @@
+import { fnv1a } from './shared-utils';
 /**
  * Hierarchical Consensus Coordinator
  * 
@@ -104,15 +105,6 @@ type EventHandler = (event: HierarchicalEvent) => void;
 // ============================================================
 // FNV-1a Hash (deterministic, no crypto dependency)
 // ============================================================
-
-function fnv1a(input: string): number {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
-    hash = (hash * 0x01000193) >>> 0;
-  }
-  return hash;
-}
 
 // ============================================================
 // Consistent Hash Ring for Shard Assignment

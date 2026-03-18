@@ -1,3 +1,4 @@
+import { fnv1a } from './shared-utils';
 /**
  * Token Economy Engine for Agent Networks
  * 
@@ -146,15 +147,6 @@ interface TokenEvent {
 // ============================================================
 // FNV-1a Hash (deterministic signatures / tie-breaking)
 // ============================================================
-
-function fnv1a(input: string): number {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
-    hash = (hash * 0x01000193) >>> 0;
-  }
-  return hash;
-}
 
 function signUpdate(channelId: string, nonce: number, address: string): string {
   return fnv1a(`${channelId}:${nonce}:${address}`).toString(16);

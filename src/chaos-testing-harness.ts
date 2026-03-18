@@ -1,3 +1,4 @@
+import { fnv1a } from './shared-utils';
 /**
  * Chaos Testing Harness for Agent Networks
  * 
@@ -261,15 +262,6 @@ type ChaosEventType =
 // ============================================================
 // FNV-1a hash for deterministic operations
 // ============================================================
-
-function fnv1a(input: string): number {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
-    hash = (hash * 0x01000193) >>> 0;
-  }
-  return hash;
-}
 
 // ============================================================
 // Metric Collector — time-series storage with aggregations

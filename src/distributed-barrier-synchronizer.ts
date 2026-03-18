@@ -1,3 +1,4 @@
+import { fnv1aHash, EWMAState, createEWMA, updateEWMA, WelfordState, createWelford, updateWelford, getVariance, getStdDev } from './shared-utils';
 /**
  * Distributed Barrier Synchronizer
  * 
@@ -20,60 +21,9 @@
 
 // ─── Utilities ───────────────────────────────────────────────────────────
 
-function fnv1aHash(input: string): number {
-  let hash = 2166136261;
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
-    hash = (hash * 16777619) >>> 0;
-  }
-  return hash;
-}
-
-interface EWMATracker {
-  value: number;
-  alpha: number;
-  count: number;
-}
-
-function createEWMA(alpha: number): EWMATracker {
-  return { value: 0, alpha, count: 0 };
-}
-
-function updateEWMA(tracker: EWMATracker, sample: number): number {
-  if (tracker.count === 0) {
-    tracker.value = sample;
-  } else {
-    tracker.value = tracker.alpha * sample + (1 - tracker.alpha) * tracker.value;
-  }
-  tracker.count++;
-  return tracker.value;
-}
-
-interface WelfordStats {
-  count: number;
-  mean: number;
-  m2: number;
-}
-
-function createWelford(): WelfordStats {
-  return { count: 0, mean: 0, m2: 0 };
-}
-
-function updateWelford(stats: WelfordStats, value: number): void {
-  stats.count++;
-  const delta = value - stats.mean;
-  stats.mean += delta / stats.count;
-  const delta2 = value - stats.mean;
-  stats.m2 += delta * delta2;
-}
-
-function getVariance(stats: WelfordStats): number {
-  return stats.count < 2 ? 0 : stats.m2 / (stats.count - 1);
-}
-
-function getStdDev(stats: WelfordStats): number {
-  return Math.sqrt(getVariance(stats));
-}
+// Functional EWMA/Welford imported from shared-utils
+type EWMATracker = EWMAState;
+type WelfordStats = WelfordState;
 
 // ─── Types ───────────────────────────────────────────────────────────────
 

@@ -1,3 +1,4 @@
+import { fnv1aHash } from './shared-utils';
 /**
  * Capability Health Monitor
  * 
@@ -17,15 +18,6 @@
  */
 
 // ─── Utilities ────────────────────────────────────────────────────────────
-
-function fnv1aHash(input: string): number {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
-    hash = (hash * 0x01000193) >>> 0;
-  }
-  return hash;
-}
 
 interface WelfordState {
   count: number;

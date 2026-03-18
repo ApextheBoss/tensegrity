@@ -1,3 +1,4 @@
+import { fnv1a } from './shared-utils';
 /**
  * Adaptive Work Stealing for Heterogeneous Agent Pools
  * 
@@ -111,15 +112,6 @@ interface PoolEvent {
 }
 
 // ─── FNV-1a Hash ─────────────────────────────────────────────────────────────
-
-function fnv1a(input: string): number {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
-    hash = (hash * 0x01000193) >>> 0;
-  }
-  return hash;
-}
 
 // ─── Work Deque (Chase-Lev) ──────────────────────────────────────────────────
 

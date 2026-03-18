@@ -1,3 +1,5 @@
+export { fnv1a, fnv1aHash, WelfordStats, EWMATracker, createEWMA, updateEWMA, createWelford, updateWelford, getVariance, getStdDev } from './shared-utils';
+export type { EWMAState, WelfordState } from './shared-utils';
 export { CircuitBreaker } from './circuit-breaker';
 export { BackpressureController } from './backpressure';
 export { TaskAuctioneer, AgentTaskAuctionScheduler } from './task-auction';
@@ -6,7 +8,7 @@ export { CRDTRegistry } from './crdt-registry';
 export { ObservableStateMachine } from './state-machine';
 export { TransactionalOutboxEngine, OutboxStore, RelayDispatcher, IdempotencyRegistry, OrderingGuaranteeManager, DeadLetterHandler, ChangeDataCaptureStream, CompactionManager, PartitionRouter, PRESETS as OutboxPresets } from './transactional-outbox';
 export { ResourcePoolManager, createConnectionPool, createComputePool, createApiQuotaPool, createMemoryPool } from './resource-pool-manager';
-export { AdaptiveThrottleGovernor, AIMDController, LatencyGradientDetector, CoDelQueueManager, PIController, TenantFairShareAllocator, CoordinatedThrottleGossip, BackoffScheduler, WelfordStats, SlidingWindow, EWMATracker, PRESETS as ThrottlePresets } from './adaptive-throttle-governor';
+export { AdaptiveThrottleGovernor, AIMDController, LatencyGradientDetector, CoDelQueueManager, PIController, TenantFairShareAllocator, CoordinatedThrottleGossip, BackoffScheduler, SlidingWindow, PRESETS as ThrottlePresets } from './adaptive-throttle-governor';
 export { VectorClockManager, CausalDeliveryBuffer, ReliableBroadcastLayer, MessageStabilityDetector, PartitionAwareBroadcaster, GossipRepairProtocol, DeliveryGuaranteeTracker, CausalBroadcastProtocol, PRESETS as CausalBroadcastPresets } from './causal-broadcast';
 export { HierarchicalConsensusCoordinator, IntraShardConsensus, ShardManager, CrossShardCoordinator, MetaConsensusLayer, RepresentativeRotation, ViewChangeCoordinator, ConsistentHashRing, PRESETS as HierarchicalConsensusPresets } from './hierarchical-consensus';
 export { LeaseConsensusProtocol, LeaseGrantor, LeaseValidator, ReadDelegator, WriteForwarder, LeaseTransferProtocol, FailureDetector, SplitBrainGuard, LeaseConflictResolver, LeaseWaitQueue, PRESETS as LeaseConsensusPresets } from './lease-consensus';

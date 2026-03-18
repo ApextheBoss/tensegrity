@@ -1,3 +1,4 @@
+import { fnv1a } from './shared-utils';
 /**
  * Distributed Lock Manager for Agent Networks
  * 
@@ -95,15 +96,6 @@ type DLMEvent =
   | { type: 'fencing-violation'; grant: LockGrant; staleToken: number; currentToken: number };
 
 // ─── FNV-1a Hash (deterministic tie-breaking) ───────────────────────
-
-function fnv1a(input: string): number {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
-    hash = (hash * 0x01000193) >>> 0;
-  }
-  return hash;
-}
 
 // ─── Lock Compatibility Matrix ──────────────────────────────────────
 

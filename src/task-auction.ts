@@ -1,3 +1,4 @@
+import { fnv1aHash } from './shared-utils';
 /**
  * Agent Task Auction Scheduler
  * 
@@ -16,15 +17,6 @@
  */
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
-
-function fnv1aHash(str: string): number {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = (h * 0x01000193) >>> 0;
-  }
-  return h;
-}
 
 interface EWMATracker {
   value: number;

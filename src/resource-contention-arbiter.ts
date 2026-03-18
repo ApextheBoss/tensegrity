@@ -1,3 +1,4 @@
+import { fnv1aHash } from './shared-utils';
 /**
  * Resource Contention Arbiter for Agent Networks
  * 
@@ -17,15 +18,6 @@
  */
 
 // ── Utilities ──────────────────────────────────────────────────────────
-
-function fnv1aHash(input: string): number {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
-    hash = (hash * 0x01000193) >>> 0;
-  }
-  return hash;
-}
 
 function ewmaUpdate(prev: number, sample: number, alpha: number): number {
   return alpha * sample + (1 - alpha) * prev;

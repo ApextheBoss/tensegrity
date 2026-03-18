@@ -1,3 +1,4 @@
+import { fnv1a } from './shared-utils';
 /**
  * Transactional Outbox Pattern for Agent Event Publishing
  * 
@@ -18,14 +19,6 @@
  */
 
 // ─── FNV-1a Hash ─────────────────────────────────────────────────
-function fnv1a(input: string): number {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < input.length; i++) {
-    h ^= input.charCodeAt(i);
-    h = (h * 0x01000193) >>> 0;
-  }
-  return h;
-}
 
 // ─── Types ───────────────────────────────────────────────────────
 interface OutboxEvent {
