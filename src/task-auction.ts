@@ -270,6 +270,10 @@ export class TaskAuctioneer {
     return [...this.auctionHistory];
   }
 
+  getActiveAuctions(): AuctionRound[] {
+    return [...this.auctions.values()].filter(a => a.phase === 'collecting');
+  }
+
   isExpired(auctionId: string): boolean {
     const auction = this.auctions.get(auctionId);
     if (!auction) return true;
@@ -1035,14 +1039,7 @@ export class AgentTaskAuctionScheduler {
   // ── Queries ─────────────────────────────────────────────────────────────────
 
   getActiveAuctions(): AuctionRound[] {
-    const result: AuctionRound[] = [];
-    const auctions = this.auctioneer as any;
-    if (auctions.auctions) {
-      for (const auction of (auctions.auctions as Map<string, AuctionRound>).values()) {
-        if (auction.phase === 'collecting') result.push(auction);
-      }
-    }
-    return result;
+    return this.auctioneer.getActiveAuctions();
   }
 
   getRevenueTrend(): ReturnType<RevenueTracker['getTrend']> {

@@ -4,7 +4,7 @@
  * Part of the Agent Coordination Toolkit.
  */
 
-interface Agent {
+export interface Agent {
   address: string;
   name: string;
   reputationByDomain: Record<string, number>;
@@ -12,7 +12,7 @@ interface Agent {
   lastActiveMs: number;
 }
 
-interface Task {
+export interface Task {
   id: string;
   domain: string;
   complexity: 'tier1' | 'tier2' | 'tier3';
@@ -20,7 +20,7 @@ interface Task {
   deadline: number;
 }
 
-interface RouteResult {
+export interface RouteResult {
   agent: Agent;
   score: number;
   reason: string;
@@ -35,7 +35,7 @@ const AVAILABILITY_WEIGHT = 0.2;
  * Calculate time-decayed reputation for an agent in a specific domain.
  * Reputation decays logarithmically based on time since last activity.
  */
-function decayedReputation(agent: Agent, domain: string, nowMs: number): number {
+export function decayedReputation(agent: Agent, domain: string, nowMs: number): number {
   const baseRep = agent.reputationByDomain[domain] ?? 0;
   const daysSinceActive = (nowMs - agent.lastActiveMs) / (1000 * 60 * 60 * 24);
   

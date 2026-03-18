@@ -18,8 +18,8 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 
 ### Task Queue (do these IN ORDER)
 
-- [ ] **AUDIT core modules** — Read circuit-breaker.ts, backpressure.ts, reputation-router.ts, task-auction.ts. Are they real? Do they handle edge cases? Fix what's broken.
-- [ ] **Write tests for core 4** — circuit-breaker, backpressure, reputation-router, task-auction. Vitest. 80%+ coverage on these.
+- [x] **AUDIT core modules** — Audited all 4. Fixed: exported types from reputation-router, removed `as any` hack in task-auction's getActiveAuctions (added proper method to TaskAuctioneer), exported decayedReputation for testability.
+- [x] **Write tests for core 4** — 48 tests across all 4 modules. circuit-breaker (10), backpressure (9), reputation-router (12), task-auction (17). All passing.
 - [ ] **Publish to npm** — `npm publish` as `tensegrity`. Needs npm account (use protonmail).
 - [ ] **Create examples/** — 3 real examples: (1) basic circuit breaker usage, (2) multi-agent task routing, (3) gossip-based service discovery
 - [ ] **README rewrite** — honest about what works, what's experimental. Add badges, install instructions, quick start.
