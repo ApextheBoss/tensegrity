@@ -1,0 +1,9 @@
+src/
+src/__tests__/
+audits/
+docs/
+*.ts
+!dist/**/*.d.ts
+tsconfig.json
+vitest.config.*
+.git/
