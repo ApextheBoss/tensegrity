@@ -79,10 +79,10 @@ export class CircuitBreaker {
       if (this.halfOpenSuccesses >= this.config.halfOpenMaxAttempts) {
         this.transitionTo('closed');
       }
-    } else {
-      this.failures = 0;
-      this.failureTimestamps = [];
     }
+    // In closed state, do NOT clear failure timestamps.
+    // Let the sliding monitorWindowMs handle expiry naturally.
+    // This ensures bursty failure patterns (fail, success, fail, ...) are properly detected.
   }
 
   private onFailure(): void {

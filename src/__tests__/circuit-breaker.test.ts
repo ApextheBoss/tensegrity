@@ -84,18 +84,54 @@ describe('CircuitBreaker', () => {
     expect(breaker.getMetrics().state).toBe('open');
   });
 
-  it('resets failure count on success in closed state', async () => {
+  it('does NOT reset failure count on success in closed state (sliding window)', async () => {
     const fail = () => Promise.reject(new Error('down'));
     await breaker.execute(fail).catch(() => {});
     await breaker.execute(fail).catch(() => {});
 
-    // Success resets counter
+    // Success does NOT reset the window — failures persist until they age out
     await breaker.execute(() => Promise.resolve('ok'));
-    expect(breaker.getMetrics().failures).toBe(0);
+    expect(breaker.getMetrics().failures).toBe(2);
 
-    // Need 3 more failures to open, not 1
+    // One more failure trips the breaker (2 prior + 1 = 3 = threshold)
     await breaker.execute(fail).catch(() => {});
-    expect(breaker.getMetrics().state).toBe('closed');
+    expect(breaker.getMetrics().state).toBe('open');
+  });
+
+  it('opens on bursty failure pattern interleaved with successes', async () => {
+    const fail = () => Promise.reject(new Error('down'));
+    const ok = () => Promise.resolve('ok');
+
+    // fail, success, fail, success, fail → should trip at threshold=3
+    await breaker.execute(fail).catch(() => {});
+    await breaker.execute(ok);
+    await breaker.execute(fail).catch(() => {});
+    await breaker.execute(ok);
+    await breaker.execute(fail).catch(() => {});
+
+    expect(breaker.getMetrics().state).toBe('open');
+  });
+
+  it('failures age out of sliding window', async () => {
+    // Use a very short window
+    const shortBreaker = new CircuitBreaker('agent-short', {
+      failureThreshold: 3,
+      resetTimeoutMs: 100,
+      halfOpenMaxAttempts: 2,
+      monitorWindowMs: 100, // 100ms window
+    });
+
+    const fail = () => Promise.reject(new Error('down'));
+    await shortBreaker.execute(fail).catch(() => {});
+    await shortBreaker.execute(fail).catch(() => {});
+
+    // Wait for failures to age out
+    await new Promise(r => setTimeout(r, 150));
+
+    // This failure should be the only one in the window now
+    await shortBreaker.execute(fail).catch(() => {});
+    expect(shortBreaker.getMetrics().failures).toBe(1);
+    expect(shortBreaker.getMetrics().state).toBe('closed');
   });
 });
 
