@@ -24,9 +24,18 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [ ] **Create examples/** — 3 real examples: (1) basic circuit breaker usage, (2) multi-agent task routing, (3) gossip-based service discovery
 - [ ] **README rewrite** — honest about what works, what's experimental. Add badges, install instructions, quick start.
 
-## Quality Audit Findings (March 18, 2026 — automated cron)
+## Quality Audit Findings (March 19, 2026 — automated cron)
 
-**Status:** 48/48 tests passing ✅ | TypeScript compiles clean ✅ | No runtime errors
+**Status:** 170/170 tests passing ✅ | TypeScript compiles clean (0 errors) ✅ | No runtime errors
+
+### Bugs Fixed (March 19)
+
+4. **TypeScript compilation errors in test files (FIXED)**
+   - `destroy-methods.test.ts` used stale interface shapes for `FederatedRequest`, `FederationConfig`, and `FederationPeer` — fields renamed/added in source but tests never updated
+   - `distributed-lock-manager.test.ts` used `Partial<typeof PRESETS['fast-locks']>` which produced literal types from `as const`, making overrides with different values fail type checks — changed to `Partial<LockManagerConfig>`
+   - Tests still passed at runtime (Vitest doesn't type-check) but `tsc --noEmit` had 12 errors
+
+### Remaining Issues
 
 ### Bugs Found
 
@@ -45,8 +54,10 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
    - When `drop-oldest` fires, the *old* message was already recorded as `recordIn()`, and the *new* message also gets `recordIn()`. The dropped old message inflates the historical in-rate
    - Minor issue, but `inRate` in metrics will be slightly inaccurate under sustained drop-oldest pressure
 
-### Missing Test Coverage (31 of 35 modules untested)
-- Only 4 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction
+5. **Duplicate utility classes in 3 files** — `EWMATracker` and `WelfordStats` are still duplicated in `lease-consensus.ts`, `eventually-consistent-index.ts`, and `transactional-outbox.ts` instead of importing from `shared-utils.ts`
+
+### Missing Test Coverage (27 of 35 modules untested)
+- 8 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods
 - High-risk untested: distributed-lock-manager, gossip-protocol-engine, crdt-registry, lease-consensus
 - All untested modules compile and export correctly — but no behavioral verification
 
@@ -62,6 +73,9 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Add tests for gossip-protocol-engine (65 tests covering all 7 subsystems)
 - [x] Extract shared utilities (fnv1a, EWMA, Welford) into common module — created src/shared-utils.ts, removed duplicates from 25 files, 12 new tests
 - [x] Add dispose/destroy methods to all modules with timers — added destroy() to FederationRouter, RequestCoalescer, ResourcePoolManager; 7 new tests
+- [x] Fix TypeScript compilation errors in test files (12 errors from stale types + literal type conflicts)
+- [ ] Remove remaining duplicate EWMATracker/WelfordStats from lease-consensus, eventually-consistent-index, transactional-outbox
+- [ ] Add tests for causal-broadcast, crdt-registry, lease-consensus (high-risk untested)
 
 ## Phase 2: Cloud Product (March 23-30)
 - [ ] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
