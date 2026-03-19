@@ -536,8 +536,10 @@ export class CausalEventLog<T = unknown> {
   }
 
   private deliver(event: CausalEvent<T>): void {
-    // Merge clock
-    this.clock = merge(this.clock, event.clock);
+    // Only merge clock for remote events; local events already ticked in emit()
+    if (event.origin !== this.origin) {
+      this.clock = merge(this.clock, event.clock);
+    }
 
     this.delivered.push(event);
 
