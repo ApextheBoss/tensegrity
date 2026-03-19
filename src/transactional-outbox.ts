@@ -1,4 +1,4 @@
-import { fnv1a } from './shared-utils';
+import { fnv1a, EWMATracker } from './shared-utils';
 /**
  * Transactional Outbox Pattern for Agent Event Publishing
  * 
@@ -125,31 +125,6 @@ interface OutboxSystemEvent {
   type: EventType;
   timestamp: number;
   data: Record<string, unknown>;
-}
-
-// ─── EWMA Tracker ────────────────────────────────────────────────
-class EWMATracker {
-  private value: number;
-  private readonly alpha: number;
-  private initialized = false;
-
-  constructor(alpha: number = 0.3) {
-    this.alpha = alpha;
-    this.value = 0;
-  }
-
-  update(sample: number): void {
-    if (!this.initialized) {
-      this.value = sample;
-      this.initialized = true;
-    } else {
-      this.value = this.alpha * sample + (1 - this.alpha) * this.value;
-    }
-  }
-
-  get(): number {
-    return this.value;
-  }
 }
 
 // ─── OutboxStore ─────────────────────────────────────────────────
@@ -777,7 +752,7 @@ class PartitionRouter {
   }
 
   getDispatchLatency(): number {
-    return this.dispatchLatency.get();
+    return this.dispatchLatency.current;
   }
 }
 

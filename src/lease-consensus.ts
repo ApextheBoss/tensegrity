@@ -1,4 +1,4 @@
-import { fnv1a } from './shared-utils';
+import { fnv1a, EWMATracker, WelfordStats } from './shared-utils';
 /**
  * Lease-Based Consensus Protocol
  * 
@@ -17,34 +17,6 @@ import { fnv1a } from './shared-utils';
  * - LeaseConflictResolver: Handles overlapping lease claims
  * - LeaseConsensusProtocol: Unified orchestrator
  */
-
-// ─── Utilities ───────────────────────────────────────────────────────────
-
-class EWMATracker {
-  private value: number | null = null;
-  constructor(private alpha: number = 0.2) {}
-  update(v: number): void {
-    this.value = this.value === null ? v : this.alpha * v + (1 - this.alpha) * this.value;
-  }
-  get(): number | null { return this.value; }
-  reset(): void { this.value = null; }
-}
-
-class WelfordStats {
-  private n = 0;
-  private mean_ = 0;
-  private m2 = 0;
-  update(x: number): void {
-    this.n++;
-    const d = x - this.mean_;
-    this.mean_ += d / this.n;
-    this.m2 += d * (x - this.mean_);
-  }
-  count(): number { return this.n; }
-  mean(): number { return this.n > 0 ? this.mean_ : 0; }
-  variance(): number { return this.n > 1 ? this.m2 / (this.n - 1) : 0; }
-  stddev(): number { return Math.sqrt(this.variance()); }
-}
 
 // ─── Types ───────────────────────────────────────────────────────────────
 
@@ -254,7 +226,7 @@ class LeaseValidator {
 
   getEstimatedSkew(agentId: string): number {
     const tracker = this.clockOffsets.get(agentId);
-    return tracker?.get() ?? 0;
+    return tracker?.current ?? 0;
   }
 
   getRemainingValidity(lease: Lease, now: number): number {
@@ -533,7 +505,7 @@ class FailureDetector {
         stats = new WelfordStats();
         this.latencyStats.set(agentId, stats);
       }
-      stats.update(interval);
+      stats.add(interval);
     }
 
     this.suspicionLevels.set(agentId, 0);
@@ -552,10 +524,10 @@ class FailureDetector {
     const timeSinceLast = now - lastHeartbeat;
 
     const stats = this.latencyStats.get(agentId);
-    if (!stats || stats.count() < 2) return 0;
+    if (!stats || stats.n < 2) return 0;
 
-    const mean = stats.mean();
-    const std = Math.max(stats.stddev(), 1); // Prevent division by zero
+    const mean = stats.mean;
+    const std = Math.max(stats.stddev, 1); // Prevent division by zero
 
     // Phi = -log10(1 - F(timeSinceLast))
     // where F is the CDF of the normal distribution
@@ -588,7 +560,7 @@ class FailureDetector {
       phi,
       suspected: phi > this.config.phiThreshold,
       lastHeartbeat: record?.timestamps[record.timestamps.length - 1] ?? null,
-      avgInterval: stats?.mean() ?? null,
+      avgInterval: stats?.mean ?? null,
     };
   }
 

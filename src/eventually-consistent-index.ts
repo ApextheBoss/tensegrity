@@ -1,4 +1,4 @@
-import { fnv1a } from './shared-utils';
+import { fnv1a, EWMATracker } from './shared-utils';
 /**
  * Eventually Consistent Index
  * 
@@ -108,29 +108,6 @@ interface ECIndexConfig {
   staleReadThresholdMs?: number;
   btreeOrder?: number;
   hashBuckets?: number;
-}
-
-// ─── EWMA Tracker ────────────────────────────────────────────────────────────
-
-class EWMATracker {
-  private value: number = 0;
-  private readonly alpha: number;
-  private initialized = false;
-
-  constructor(alpha: number = 0.3) {
-    this.alpha = alpha;
-  }
-
-  update(sample: number): void {
-    if (!this.initialized) {
-      this.value = sample;
-      this.initialized = true;
-    } else {
-      this.value = this.alpha * sample + (1 - this.alpha) * this.value;
-    }
-  }
-
-  get(): number { return this.value; }
 }
 
 // ─── Inverted Index ──────────────────────────────────────────────────────────
@@ -503,7 +480,7 @@ class ConvergenceChecker {
     }
 
     const avgDivergence = remoteVectors.size > 0 ? totalDivergence / remoteVectors.size : 0;
-    const ewmaLag = this.lagTracker.get(indexName)?.get() || maxLag;
+    const ewmaLag = this.lagTracker.get(indexName)?.current || maxLag;
 
     return {
       indexName, converged: staleReplicas.length === 0 && avgDivergence <= this.maxDivergence,
