@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "start": "node cloud/server.mjs",
+    "start": "node cloud/server-express.mjs",
     "test": "vitest run"
   },
   "keywords": [
@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.19.11",
+    "express": "^5.2.1",
     "hono": "^4.12.8",
     "tsx": "^4.21.0"
   }
