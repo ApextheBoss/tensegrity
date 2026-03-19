@@ -26,9 +26,17 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 
 ## Quality Audit Findings (March 19, 2026 — automated cron)
 
-**Status:** 170/170 tests passing ✅ | TypeScript compiles clean (0 errors) ✅ | No runtime errors
+**Status:** 323/323 tests passing ✅ | TypeScript compiles clean (0 errors) ✅ | No runtime errors
 
-### Bugs Fixed (March 19)
+### Bugs Fixed (March 19 — AM audit)
+
+5. **CausalEventLog: double-tick on local emit (FIXED)**
+   - `emit()` ticked the clock, then `deliver()` called `merge()` which ticked again
+   - Result: local event clocks skipped values (1,3,5...) instead of (1,2,3...)
+   - Broke causal ordering for any consumer receiving events — out-of-order events couldn't be delivered because sequence gaps made `canDeliver` fail
+   - **Fix:** `deliver()` now only merges clock for remote events; local events already have the correct clock from `emit()`
+
+### Bugs Fixed (March 19 — earlier)
 
 4. **TypeScript compilation errors in test files (FIXED)**
    - `destroy-methods.test.ts` used stale interface shapes for `FederatedRequest`, `FederationConfig`, and `FederationPeer` — fields renamed/added in source but tests never updated
@@ -56,9 +64,9 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 
 5. **Duplicate utility classes in 3 files** — `EWMATracker` and `WelfordStats` are still duplicated in `lease-consensus.ts`, `eventually-consistent-index.ts`, and `transactional-outbox.ts` instead of importing from `shared-utils.ts`
 
-### Missing Test Coverage (27 of 35 modules untested)
-- 8 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods
-- High-risk untested: distributed-lock-manager, gossip-protocol-engine, crdt-registry, lease-consensus
+### Missing Test Coverage (23 of 35 modules untested)
+- 12 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality
+- High-priority untested: work-queue-exactly-once, transactional-outbox, observable-state-machine, distributed-barrier-synchronizer
 - All untested modules compile and export correctly — but no behavioral verification
 
 ### Architecture Observations
@@ -76,6 +84,11 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Fix TypeScript compilation errors in test files (12 errors from stale types + literal type conflicts)
 - [x] Remove remaining duplicate EWMATracker/WelfordStats from lease-consensus, eventually-consistent-index, transactional-outbox
 - [x] Add tests for causal-broadcast (41 tests), crdt-registry (31 tests), lease-consensus (43 tests)
+- [x] Fix CausalEventLog double-tick bug — local emit was double-ticking clock via merge
+- [x] Add tests for vector-clock-causality (38 tests covering clocks, DVVs, matrix clocks, barriers, event log, stability, conflict strategies)
+- [ ] Add tests for work-queue-exactly-once
+- [ ] Add tests for transactional-outbox
+- [ ] Add tests for observable-state-machine
 
 ## Phase 2: Cloud Product (March 23-30)
 - [ ] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
