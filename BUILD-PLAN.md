@@ -75,7 +75,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Add dispose/destroy methods to all modules with timers — added destroy() to FederationRouter, RequestCoalescer, ResourcePoolManager; 7 new tests
 - [x] Fix TypeScript compilation errors in test files (12 errors from stale types + literal type conflicts)
 - [x] Remove remaining duplicate EWMATracker/WelfordStats from lease-consensus, eventually-consistent-index, transactional-outbox
-- [ ] Add tests for causal-broadcast, crdt-registry, lease-consensus (high-risk untested)
+- [x] Add tests for causal-broadcast (41 tests), crdt-registry (31 tests), lease-consensus (43 tests)
 
 ## Phase 2: Cloud Product (March 23-30)
 - [ ] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
