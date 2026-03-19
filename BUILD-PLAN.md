@@ -86,7 +86,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Add tests for causal-broadcast (41 tests), crdt-registry (31 tests), lease-consensus (43 tests)
 - [x] Fix CausalEventLog double-tick bug — local emit was double-ticking clock via merge
 - [x] Add tests for vector-clock-causality (38 tests covering clocks, DVVs, matrix clocks, barriers, event log, stability, conflict strategies)
-- [ ] Add tests for work-queue-exactly-once
+- [x] Add tests for work-queue-exactly-once (37 tests covering enqueue/dedup, claim/priority, complete/fence, fail/retry, lease renewal/expiry, compaction, DLQ, poison pill, partitioning, exactly-once guarantees)
 - [ ] Add tests for transactional-outbox
 - [ ] Add tests for observable-state-machine
 
