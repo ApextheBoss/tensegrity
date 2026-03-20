@@ -45,7 +45,15 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 
 ### Remaining Issues
 
-### Bugs Found
+### Bugs Found (March 20, 2026 — cron audit)
+
+6. **ObservableStateMachine: tick() only notifies observers for fatal invariant violations**
+   - `InvariantChecker.check()` returns `false` only when severity is `'fatal'`
+   - `tick()` only calls `observers.notify()` when `check()` returns `false`
+   - Result: `'error'` and `'warning'` invariant violations are recorded in `getInvariantViolations()` but observers never receive notification
+   - **Recommendation:** Notify observers for ALL violations, not just fatal ones. Use the `check()` return value only for deciding whether to halt the machine.
+
+### Bugs Found (earlier)
 
 1. **CircuitBreaker: success resets sliding window (design issue)**
    - `onSuccess()` in closed state sets `failures = 0` and clears `failureTimestamps[]`
@@ -64,9 +72,9 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 
 5. **Duplicate utility classes in 3 files** — `EWMATracker` and `WelfordStats` are still duplicated in `lease-consensus.ts`, `eventually-consistent-index.ts`, and `transactional-outbox.ts` instead of importing from `shared-utils.ts`
 
-### Missing Test Coverage (23 of 35 modules untested)
-- 12 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality
-- High-priority untested: work-queue-exactly-once, transactional-outbox, observable-state-machine, distributed-barrier-synchronizer
+### Missing Test Coverage (20 of 35 modules untested)
+- 15 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine
+- High-priority untested: distributed-barrier-synchronizer, adaptive-work-stealing, resource-pool-manager
 - All untested modules compile and export correctly — but no behavioral verification
 
 ### Architecture Observations
@@ -88,7 +96,9 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Add tests for vector-clock-causality (38 tests covering clocks, DVVs, matrix clocks, barriers, event log, stability, conflict strategies)
 - [x] Add tests for work-queue-exactly-once (37 tests covering enqueue/dedup, claim/priority, complete/fence, fail/retry, lease renewal/expiry, compaction, DLQ, poison pill, partitioning, exactly-once guarantees)
 - [x] Add tests for transactional-outbox (44 tests covering all 9 subsystems: OutboxStore, IdempotencyRegistry, OrderingGuaranteeManager, DeadLetterHandler, CDC, CompactionManager, PartitionRouter, RelayDispatcher, TransactionalOutboxEngine integration)
-- [ ] Add tests for observable-state-machine
+- [x] Add tests for observable-state-machine (78 tests covering StateRegistry, TransitionEngine, ObserverManager, TimeoutManager, InvariantChecker, TransitionLog, SnapshotManager, DeadlockDetector, ParallelRegionCoordinator, core machine lifecycle, guards/actions, hierarchical states with history, priority resolution, wildcard transitions, all 3 preset machines)
+- [ ] Fix: observable-state-machine tick() only notifies observers for fatal invariant violations — error/warning violations are silently swallowed
+- [ ] Add tests for distributed-barrier-synchronizer
 
 ## Phase 2: Cloud Product (March 23-30)
 - [ ] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
