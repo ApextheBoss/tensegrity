@@ -98,7 +98,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Add tests for transactional-outbox (44 tests covering all 9 subsystems: OutboxStore, IdempotencyRegistry, OrderingGuaranteeManager, DeadLetterHandler, CDC, CompactionManager, PartitionRouter, RelayDispatcher, TransactionalOutboxEngine integration)
 - [x] Add tests for observable-state-machine (78 tests covering StateRegistry, TransitionEngine, ObserverManager, TimeoutManager, InvariantChecker, TransitionLog, SnapshotManager, DeadlockDetector, ParallelRegionCoordinator, core machine lifecycle, guards/actions, hierarchical states with history, priority resolution, wildcard transitions, all 3 preset machines)
 - [x] Fix: observable-state-machine tick() only notifies observers for fatal invariant violations — changed check() to return {anyViolation, fatal}, tick() now notifies for all severities
-- [ ] Add tests for distributed-barrier-synchronizer
+- [x] Add tests for distributed-barrier-synchronizer (62 tests covering all 8 subsystems + found/fixed falsy-zero openedAt bug in tick())
 
 ## Phase 2: Cloud Product (March 23-30)
 - [ ] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
