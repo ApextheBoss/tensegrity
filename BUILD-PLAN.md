@@ -95,7 +95,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 
 ### Missing Test Coverage (15 of 35 modules untested)
 - 20 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator
-- High-priority untested: chaos-testing-harness
+- ~~High-priority untested: chaos-testing-harness~~ ✅ 57 tests added
 - `state-machine.ts` is a duplicate of `observable-state-machine.ts` (pre-fix version) — skip
 - All untested modules compile and export correctly — but no behavioral verification
 
@@ -131,6 +131,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Add tests for service-discovery-mesh (41 tests covering LocalRegistry, HealthChecker, LocalityScorer, WatchManager, GossipDisseminator, SplitBrainDetector, full mesh lifecycle, gossip round-trip, query filtering by attributes/version/load)
 - [x] Fix ServiceDiscoveryMesh tick() previousHealth bug — was capturing new health state instead of old
 - [x] Add tests for backoff-coordinator (30 tests covering BackoffCalculator strategies, BackoffCoordinator lifecycle, correlated failure detection, escalation/blackout, dependency inheritance, SlotManager, CorrelationDetector, presets)
+- [x] Add tests for chaos-testing-harness (57 tests covering MetricCollector, HypothesisEvaluator, BlastRadiusController, KillSwitchMonitor, TargetResolver, FaultInjector, PreflightChecker, ExperimentEngine full lifecycle, GameDayCoordinator, pre-built scenarios)
 
 ## Phase 2: Cloud Product (March 23-30)
 - [ ] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
