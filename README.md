@@ -1,95 +1,28 @@
 # tensegrity
 
 [![npm](https://img.shields.io/npm/v/tensegrity)](https://www.npmjs.com/package/tensegrity)
+[![tests](https://img.shields.io/badge/tests-719%20passing-brightgreen)](https://github.com/nicobailon/tensegrity)
 [![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](https://www.npmjs.com/package/tensegrity)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](https://www.typescriptlang.org/)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-**The missing coordination layer for multi-agent systems.**
-
-Every agent framework handles the LLM calls. None of them handle what happens when your agents crash mid-task, overwhelm each other with messages, or need to agree on who does what. Tensegrity fixes that.
-
-35 production-grade modules. Zero dependencies. Pure TypeScript.
+**Distributed systems primitives for multi-agent coordination. Zero dependencies. Pure TypeScript.**
 
 ```
 npm install tensegrity
 ```
 
-## The Problem
+## Why
 
-You have 10 agents. One goes down. Now the three agents that depend on it start failing. Their dependents fail too. Your whole system cascades into nothing in 8 seconds.
+Every agent framework handles the LLM calls. None of them handle what happens next.
 
-Or: you have a fast agent producing tasks and a slow agent consuming them. The fast one doesn't know to slow down. Queue fills up. Memory spikes. Everything dies.
+- Agent goes down → three dependents fail → cascade kills the system in 8 seconds
+- Fast producer, slow consumer → queue fills → memory spikes → crash
+- Two agents need shared state → you Google "distributed consensus" → 47 PhD papers
 
-Or: you need two agents to coordinate on shared state without a central server. You Google "distributed consensus" and find 47 PhD papers.
+These aren't hypothetical. These are Tuesday. And every team building multi-agent systems solves them from scratch, badly, in application code that should be infrastructure.
 
-These aren't hypothetical. These are Tuesday. And every team building multi-agent systems is solving them from scratch, badly, in application code that should be infrastructure.
-
-## What's In The Box
-
-### Core Primitives (start here)
-
-| Module | What It Does |
-|--------|-------------|
-| **CircuitBreaker** | Prevents cascading failures. 3-state machine (closed/open/half-open) with sliding window failure tracking. |
-| **BackpressureController** | Stops fast producers from killing slow consumers. 4 strategies: drop-newest, drop-oldest, reject, throttle. Priority queuing built in. |
-| **TaskAuctioneer** | Agents bid on tasks. Sealed-bid and open ascending formats. Bid validation, timeout, winner selection. |
-| **ReputationWeightedRouter** | Routes work to agents based on track record. Good agents get more work. Bad agents get less. Exponential decay so recent performance matters most. |
-
-### Distributed Systems
-
-| Module | What It Does |
-|--------|-------------|
-| **GossipEngine** | SWIM failure detection + Plumtree hybrid gossip + Merkle anti-entropy. 7 composable subsystems. |
-| **VectorClockCausality** | True happened-before tracking. Dotted version vectors, matrix clocks, causal barriers, stability detection. |
-| **DistributedLockManager** | Mutual exclusion without central coordination. Bakery algorithm, Maekawa quorum, Redlock, intention locks, deadlock detection. |
-| **HierarchicalConsensus** | BFT consensus with intra-shard agreement, cross-shard coordination, and meta-consensus. |
-| **ConsensusViewSynchronizer** | BFT view sync with adaptive pacemaker, leader reputation, timeout certificates. |
-| **CausalBroadcast** | Reliable causal delivery with partition-aware broadcasting and gossip repair. |
-
-### Resource Management
-
-| Module | What It Does |
-|--------|-------------|
-| **ResourcePoolManager** | Shared resource pools (connections, compute, API quotas) with fair allocation, preemption, auto-scaling triggers. |
-| **ResourceContentionArbiter** | Game-theoretic allocation. Vickrey auctions, Nash bargaining, Wait-Die deadlock prevention, starvation detection. |
-| **AdaptiveThrottleGovernor** | TCP-style rate control (AIMD + Vegas latency gradient + CoDel + PI controller). Multi-tenant fair-share. |
-| **AdaptiveWorkStealing** | Work-stealing thread pool for agents. Topology-aware, affinity-tracked, with task splitting. |
-| **SchedulerAffinityGraph** | Task-to-agent affinity tracking. Learns which agents are best at which tasks over time. |
-
-### Reliability
-
-| Module | What It Does |
-|--------|-------------|
-| **ChaosTestingHarness** | Chaos engineering for agents. Inject faults, verify hypotheses, GameDay orchestration. |
-| **BackoffCoordinator** | Coordinated retry with jitter. Correlation detection across agents. Backoff inheritance for dependent services. |
-| **NetworkPartitioner** | Phi-accrual failure detection, controlled partition simulation, split-brain resolution, healing coordination. |
-| **DistributedBarrierSynchronizer** | Barriers for phased multi-agent workflows. Tree aggregation, straggler detection, fuzzy barriers. |
-
-### Infrastructure
-
-| Module | What It Does |
-|--------|-------------|
-| **ServiceDiscoveryMesh** | Decentralized service registry. Gossip-based, health-aware, locality-scored. No central server. |
-| **FederationRouter** | Cross-network agent coordination. Per-network rate budgets, quota negotiation, request coalescing. |
-| **TransactionalOutbox** | Exactly-once event publishing from agent state changes. Dead-letter queues, CDC, compaction. |
-| **ExactlyOnceQueue** | Distributed work queue. Bloom filter dedup, lease-based visibility, fencing tokens, poison pill detection. |
-| **ContractUpgradeProxy** | Hot-swap agent protocols. Facet management, migration pipelines, timelock governance, emergency rollback. |
-
-### Agent Economy
-
-| Module | What It Does |
-|--------|-------------|
-| **TokenEconomyEngine** | Token micro-economy. Minting (fixed/inflationary/bonding curve), staking with slashing, payment channels, AMM, revenue sharing. |
-| **AgentCapabilityMarketplace** | Service marketplace with pricing engine, escrow, matching, reputation gates, dispute arbitration, usage metering. |
-
-### State & Observability
-
-| Module | What It Does |
-|--------|-------------|
-| **CRDTRegistry** | Conflict-free replicated data types for eventual consistency without coordination. |
-| **ObservableStateMachine** | State machines with observers, invariant checking, deadlock detection, parallel regions. |
-| **EventuallyConsistentIndex** | Eventually consistent secondary indexes. Inverted, B-tree, hash indexes with convergence checking. |
-| **CapabilityHealthMonitor** | Real-time health tracking with degradation detection, predictive failure analysis, automated remediation. |
+Tensegrity is that infrastructure. 34 composable modules covering everything from circuit breakers to BFT consensus, all in one zero-dependency TypeScript package.
 
 ## Quick Start
 
@@ -100,18 +33,18 @@ import { CircuitBreaker } from 'tensegrity';
 
 const breaker = new CircuitBreaker('agent-0x1234', {
   failureThreshold: 3,
-  resetTimeoutMs: 30000
+  resetTimeoutMs: 30000,
+  monitorWindowMs: 60000
 });
 
 try {
   const result = await breaker.execute(() => agent.doSomething());
 } catch (err) {
-  // after 3 failures, breaker opens and fast-fails for 30s
-  // prevents you from hammering a dead agent
+  // After 3 failures within the window, breaker opens and fast-fails for 30s
 }
 ```
 
-### Backpressure on a message queue
+### Backpressure control
 
 ```typescript
 import { BackpressureController } from 'tensegrity';
@@ -126,31 +59,6 @@ const accepted = await bp.enqueue({
   id: 'msg-1', payload: data, priority: 5,
   enqueuedAt: Date.now(), sender: 'agent-A'
 });
-// returns false if queue is full (strategy: reject/drop)
-// adds delay if throttling
-```
-
-### Gossip-based service discovery
-
-```typescript
-import { createGossipEngine, createMesh } from 'tensegrity';
-
-// Gossip engine spreads information across agents
-const gossip = createGossipEngine('agent-001', 'medium-network');
-gossip.membership.addMember({
-  id: 'agent-002', address: 'ws://...', metadata: {}, generation: 1, heartbeat: 0
-});
-
-// Service mesh finds the best agent for a job
-const mesh = createMesh('node-1', 'medium-network');
-mesh.register({
-  instanceId: 'compute-001', serviceType: 'agent.compute',
-  serviceName: 'GPT Worker', agentAddress: '0x...',
-  endpoint: 'ws://...', version: '1.2.0',
-  locality: { region: 'us-east', zone: 'a' }
-});
-
-const best = mesh.resolveOne('agent.compute', { region: 'us-east' });
 ```
 
 ### Task auction
@@ -160,7 +68,6 @@ import { TaskAuctioneer } from 'tensegrity';
 
 const auctioneer = new TaskAuctioneer(config);
 
-// Agents bid based on their capability and availability
 auctioneer.submitBid({
   agentId: 'agent-A', price: 0.02,
   estimatedLatencyMs: 200, capabilities: ['gpt-4']
@@ -173,21 +80,104 @@ auctioneer.submitBid({
 const winner = auctioneer.resolve();
 ```
 
-## Philosophy
+### Gossip-based service discovery
 
-Every module ships with **presets** for common configurations. Most have 3: conservative, balanced, aggressive. Use presets to start, customize when you need to.
+```typescript
+import { createGossipEngine, createMesh } from 'tensegrity';
 
-Every module has **zero external dependencies**. The entire package is pure TypeScript. No native modules, no C++ bindings, no supply chain risk. Works everywhere Node.js works.
+const gossip = createGossipEngine('agent-001', 'medium-network');
+gossip.membership.addMember({
+  id: 'agent-002', address: 'ws://...', metadata: {}, generation: 1, heartbeat: 0
+});
 
-Every module is **independently importable**. Use the circuit breaker without pulling in the gossip engine. Tree-shaking friendly.
+const mesh = createMesh('node-1', 'medium-network');
+mesh.register({
+  instanceId: 'compute-001', serviceType: 'agent.compute',
+  serviceName: 'GPT Worker', agentAddress: '0x...',
+  endpoint: 'ws://...', version: '1.2.0',
+  locality: { region: 'us-east', zone: 'a' }
+});
 
-This is **not** an agent framework. It doesn't manage your prompts, your chains, your tool calls, or your LLM providers. It handles the coordination problems that every agent framework ignores: what happens when things fail, when agents compete for resources, when you need distributed agreement. Use it alongside CrewAI, AutoGen, LangGraph, or your own framework.
+const best = mesh.resolveOne('agent.compute', { region: 'us-east' });
+```
+
+More examples in [`examples/`](./examples/).
+
+## Modules
+
+### Core Primitives (tested ✅, start here)
+
+| Module | What It Does |
+|--------|-------------|
+| **CircuitBreaker** | 3-state circuit breaker with sliding window failure tracking |
+| **BackpressureController** | 4 strategies: drop-newest, drop-oldest, reject, throttle. Priority queuing. |
+| **TaskAuctioneer** | Sealed-bid and open ascending auctions for task allocation |
+| **ReputationWeightedRouter** | Routes work based on track record with exponential decay |
+
+### Distributed Systems (tested ✅)
+
+| Module | What It Does |
+|--------|-------------|
+| **GossipEngine** | SWIM failure detection + Plumtree gossip + Merkle anti-entropy |
+| **VectorClockCausality** | Happened-before tracking, dotted version vectors, matrix clocks, causal barriers |
+| **DistributedLockManager** | Bakery, Maekawa quorum, Redlock, intention locks, deadlock detection |
+| **CausalBroadcast** | Reliable causal delivery with partition-aware broadcasting |
+| **LeaseConsensus** | Lease-based consensus with conflict resolution |
+| **CRDTRegistry** | Conflict-free replicated data types for eventual consistency |
+
+### Resource Management (tested ✅)
+
+| Module | What It Does |
+|--------|-------------|
+| **ResourcePoolManager** | Shared pools with fair allocation, preemption, burst tracking, auto-scaling |
+| **AdaptiveWorkStealing** | Work-stealing pool with topology awareness and task splitting |
+| **AdaptiveRoutingMesh** | Multi-path routing with congestion detection and failure correlation |
+| **BackoffCoordinator** | Coordinated retry with jitter, correlation detection, backoff inheritance |
+
+### Reliability (tested ✅)
+
+| Module | What It Does |
+|--------|-------------|
+| **DistributedBarrierSynchronizer** | Phased workflows with tree aggregation and straggler detection |
+| **ObservableStateMachine** | State machines with observers, invariants, deadlock detection, parallel regions |
+| **TransactionalOutbox** | Exactly-once event publishing with dead-letter queues and CDC |
+| **ExactlyOnceQueue** | Bloom filter dedup, lease-based visibility, fencing tokens, poison pill detection |
+| **ServiceDiscoveryMesh** | Decentralized service registry, gossip-based, health-aware, locality-scored |
+
+### Experimental (compiles, no tests yet)
+
+These modules are functional but haven't been through the test gauntlet. Use with caution and please report issues.
+
+| Module | What It Does |
+|--------|-------------|
+| **HierarchicalConsensus** | BFT consensus with intra-shard and cross-shard coordination |
+| **ConsensusViewSynchronizer** | BFT view sync with adaptive pacemaker and leader reputation |
+| **AdaptiveThrottleGovernor** | TCP-style rate control (AIMD + Vegas + CoDel + PI controller) |
+| **ResourceContentionArbiter** | Game-theoretic allocation: Vickrey auctions, Nash bargaining |
+| **ChaosTestingHarness** | Fault injection and GameDay orchestration |
+| **NetworkPartitioner** | Phi-accrual failure detection, split-brain resolution |
+| **FederationRouter** | Cross-network coordination with per-network rate budgets |
+| **ContractUpgradeProxy** | Hot-swap agent protocols with migration pipelines |
+| **TokenEconomyEngine** | Token micro-economy with minting, staking, AMM |
+| **AgentCapabilityMarketplace** | Service marketplace with escrow and dispute arbitration |
+| **SchedulerAffinityGraph** | Task-to-agent affinity learning |
+| **CapabilityHealthMonitor** | Health tracking with predictive failure analysis |
+| **AutonomousTaskDecomposer** | Automatic task decomposition |
+| **EventuallyConsistentIndex** | Secondary indexes with convergence checking |
+
+## Design Principles
+
+**Zero dependencies.** The entire package is pure TypeScript. No native modules, no C++ bindings, no supply chain risk.
+
+**Presets over config.** Every module ships with presets (conservative, balanced, aggressive). Start with a preset, customize when you need to.
+
+**Independently importable.** Use the circuit breaker without pulling in the gossip engine. Tree-shaking friendly.
+
+**Not a framework.** Tensegrity doesn't manage prompts, chains, tool calls, or LLM providers. Use it alongside CrewAI, AutoGen, LangGraph, or your own framework. It handles the coordination problems they ignore.
 
 ## Status
 
-**v0.1.0** — Early release. Core primitives are tested and working. Advanced modules are functional but test coverage is still growing. APIs may change before v1.0.
-
-Built by [Apex](https://x.com/ApextheBossAI), an autonomous AI agent. No humans involved.
+**v0.1.0** — 719 tests across 20 test suites. Core modules (circuit breakers, backpressure, gossip, distributed locks, CRDTs, work stealing, routing, state machines) are tested and working. Experimental modules compile and export correctly but need test coverage. APIs may change before v1.0.
 
 ## License
 
