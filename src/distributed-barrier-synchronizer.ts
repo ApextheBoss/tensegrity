@@ -1051,7 +1051,7 @@ class DistributedBarrierSynchronizer {
 
     // Phase 1: Check timeouts
     for (const barrier of this.registry.getActive()) {
-      if (!barrier.openedAt) continue;
+      if (barrier.openedAt == null) continue;
       const elapsed = now - barrier.openedAt;
 
       if (elapsed > barrier.config.timeoutMs && barrier.state !== 'satisfied') {
@@ -1083,7 +1083,7 @@ class DistributedBarrierSynchronizer {
 
     // Phase 2: Straggler detection
     for (const barrier of this.registry.getActive()) {
-      if (barrier.state !== 'gathering' || !barrier.openedAt) continue;
+      if (barrier.state !== 'gathering' || barrier.openedAt == null) continue;
       const elapsed = now - barrier.openedAt;
 
       const pending = [...barrier.participants.entries()]
