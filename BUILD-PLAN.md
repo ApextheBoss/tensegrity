@@ -99,6 +99,12 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
    - When `drop-oldest` fires, the *old* message was already recorded as `recordIn()`, and the *new* message also gets `recordIn()`. The dropped old message inflates the historical in-rate
    - Minor issue, but `inRate` in metrics will be slightly inaccurate under sustained drop-oldest pressure
 
+11. **QueryPlanner doesn't handle 'covering' index type (BUG)**
+    - `plan()` switch cases for query types only check `idx.type === 'hash' | 'btree' | 'inverted'`
+    - Indexes with `type: 'covering'` never match any case, so queries always fall back to fullscan
+    - Covering indexes store data correctly (including payload from coveringFields) but are never selected by the planner
+    - **Recommendation:** Treat 'covering' the same as 'hash' in the planner's type checks
+
 5. **Duplicate utility classes in 3 files** — `EWMATracker` and `WelfordStats` are still duplicated in `lease-consensus.ts`, `eventually-consistent-index.ts`, and `transactional-outbox.ts` instead of importing from `shared-utils.ts`
 
 ### Missing Test Coverage (14 of 35 modules untested)
@@ -141,6 +147,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Fix ServiceDiscoveryMesh tick() previousHealth bug — was capturing new health state instead of old
 - [x] Add tests for backoff-coordinator (30 tests covering BackoffCalculator strategies, BackoffCoordinator lifecycle, correlated failure detection, escalation/blackout, dependency inheritance, SlotManager, CorrelationDetector, presets)
 - [x] Add tests for chaos-testing-harness (57 tests covering MetricCollector, HypothesisEvaluator, BlastRadiusController, KillSwitchMonitor, TargetResolver, FaultInjector, PreflightChecker, ExperimentEngine full lifecycle, GameDayCoordinator, pre-built scenarios)
+- [x] Add tests for eventually-consistent-index (64 tests covering InvertedIndex, BTreeIndex, HashIndex, IndexVersionVector, ConflictResolver, QueryPlanner, StaleReadDetector, IndexCompactor, ConvergenceChecker, full orchestrator)
 - [x] Add tests for eventually-consistent-index (64 tests covering InvertedIndex BM25/search/remove/prefix, BTreeIndex insert/search/range/remove/splits, HashIndex insert/lookup/unique/remove, IndexVersionVector increment/merge/dominates/divergence, ConflictResolver lww/highest_version/merge_union/priority, QueryPlanner hash/btree/fullscan/covering, StaleReadDetector stale/fresh/rate, full orchestrator upsert/delete/range/fulltext/remote-updates/convergence/tick/rebuild/sparse/presets)
 - [x] Fix BTreeIndex.remove() size tracking bug — size was only decremented when entire key was emptied, not when individual entries were removed. After inserting N entries under the same key and removing one, getSize() was still N instead of N-1.
 
