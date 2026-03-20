@@ -21,7 +21,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] **AUDIT core modules** — Audited all 4. Fixed: exported types from reputation-router, removed `as any` hack in task-auction's getActiveAuctions (added proper method to TaskAuctioneer), exported decayedReputation for testability.
 - [x] **Write tests for core 4** — 48 tests across all 4 modules. circuit-breaker (10), backpressure (9), reputation-router (12), task-auction (17). All passing.
 - [ ] **Publish to npm** — `npm publish` as `tensegrity`. Needs npm account (use protonmail).
-- [ ] **Create examples/** — 3 real examples: (1) basic circuit breaker usage, (2) multi-agent task routing, (3) gossip-based service discovery
+- [x] **Create examples/** — 3 real examples: (1) basic circuit breaker usage, (2) multi-agent task routing, (3) gossip-based service discovery
 - [ ] **README rewrite** — honest about what works, what's experimental. Add badges, install instructions, quick start.
 
 ## Quality Audit Findings (March 19, 2026 — automated cron)
