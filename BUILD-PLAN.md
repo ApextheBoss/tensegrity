@@ -87,8 +87,9 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 5. **Duplicate utility classes in 3 files** — `EWMATracker` and `WelfordStats` are still duplicated in `lease-consensus.ts`, `eventually-consistent-index.ts`, and `transactional-outbox.ts` instead of importing from `shared-utils.ts`
 
 ### Missing Test Coverage (18 of 35 modules untested)
-- 17 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager
-- High-priority untested: state-machine, adaptive-routing-mesh, service-discovery-mesh
+- 18 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh
+- High-priority untested: service-discovery-mesh, backoff-coordinator, chaos-testing-harness
+- `state-machine.ts` is a duplicate of `observable-state-machine.ts` (pre-fix version) — skip
 - All untested modules compile and export correctly — but no behavioral verification
 
 ### Architecture Observations
@@ -118,6 +119,8 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Add tests for resource-pool-manager (44 tests covering allocation, release, renewal, preemption, quotas, burst tracking, expiry reclamation, fair-share, health monitoring, scaling triggers, priority wait queue, destroy, templates)
 - [x] Fix ResourcePoolManager burst tracking bug — burst allowance was never consumed, allowing infinite burst within a window
 - [x] Fix ResourcePoolManager unused variable in computeFairShare
+- [x] Add tests for adaptive-routing-mesh (60 tests covering all 9 subsystems: TopologyTracker, LatencyPredictor, PathScorer, RouteCache, MultiPathRouter, CongestionDetector, FailureCorrelator, TrafficShaper, AdaptiveRoutingEngine + presets)
+- [x] Fix adaptive-routing-mesh Dijkstra bug — compared weighted distance against maxHops instead of hop count, breaking all multi-hop routing
 
 ## Phase 2: Cloud Product (March 23-30)
 - [ ] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
