@@ -43,6 +43,14 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
    - `distributed-lock-manager.test.ts` used `Partial<typeof PRESETS['fast-locks']>` which produced literal types from `as const`, making overrides with different values fail type checks — changed to `Partial<LockManagerConfig>`
    - Tests still passed at runtime (Vitest doesn't type-check) but `tsc --noEmit` had 12 errors
 
+### Bugs Found & Fixed (March 21, 2026 — cron audit)
+
+11. **BTreeIndex: remove() only decrements size when entire key is emptied (FIXED)**
+    - `remove(key, docId)` filtered out the docId from the values array, but only decremented `this.size` when `values[i].length === 0` (entire key removed)
+    - `insert()` increments `size` on every call, so size tracks total entries, not keys
+    - Result: after inserting 3 entries under the same key and removing 1, `getSize()` returned 3 instead of 2
+    - **Fix:** Compute `removed = before - after` from the filter and decrement size by that amount
+
 ### Remaining Issues
 
 ### Bugs Found & Fixed (March 20, 2026 — PM audit)
@@ -97,6 +105,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - 22 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator, adaptive-throttle-governor, eventually-consistent-index
 - ~~High-priority untested: chaos-testing-harness~~ ✅ 57 tests added
 - `state-machine.ts` is a duplicate of `observable-state-machine.ts` (pre-fix version) — skip
+- ~~`eventually-consistent-index.ts`~~ ✅ 64 tests added
 - All untested modules compile and export correctly — but no behavioral verification
 
 ### Architecture Observations
