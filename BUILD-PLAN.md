@@ -22,7 +22,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] **Write tests for core 4** — 48 tests across all 4 modules. circuit-breaker (10), backpressure (9), reputation-router (12), task-auction (17). All passing.
 - [ ] **Publish to npm** — `npm publish` as `tensegrity`. Needs npm account (use protonmail).
 - [x] **Create examples/** — 3 real examples: (1) basic circuit breaker usage, (2) multi-agent task routing, (3) gossip-based service discovery
-- [ ] **README rewrite** — honest about what works, what's experimental. Add badges, install instructions, quick start.
+- [x] **README rewrite** — honest about what works, what's experimental. Add badges, install instructions, quick start. Split modules into tested ✅ vs experimental. 719 tests, 20 suites.
 
 ## Quality Audit Findings (March 19, 2026 — automated cron)
 
