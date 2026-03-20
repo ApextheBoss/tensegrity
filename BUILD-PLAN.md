@@ -87,7 +87,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Fix CausalEventLog double-tick bug — local emit was double-ticking clock via merge
 - [x] Add tests for vector-clock-causality (38 tests covering clocks, DVVs, matrix clocks, barriers, event log, stability, conflict strategies)
 - [x] Add tests for work-queue-exactly-once (37 tests covering enqueue/dedup, claim/priority, complete/fence, fail/retry, lease renewal/expiry, compaction, DLQ, poison pill, partitioning, exactly-once guarantees)
-- [ ] Add tests for transactional-outbox
+- [x] Add tests for transactional-outbox (44 tests covering all 9 subsystems: OutboxStore, IdempotencyRegistry, OrderingGuaranteeManager, DeadLetterHandler, CDC, CompactionManager, PartitionRouter, RelayDispatcher, TransactionalOutboxEngine integration)
 - [ ] Add tests for observable-state-machine
 
 ## Phase 2: Cloud Product (March 23-30)
