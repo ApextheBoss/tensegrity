@@ -45,7 +45,14 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 
 ### Remaining Issues
 
-### Bugs Found & Fixed (March 20, 2026 — cron audit)
+### Bugs Found & Fixed (March 20, 2026 — PM audit)
+
+10. **ServiceDiscoveryMesh: tick() previousHealth captured new state instead of old (FIXED)**
+    - `tick()` saved `oldScore` but then overwrote `inst.health` via `probe()`, then built `previousHealth` by spreading `inst.health` (already new) and only overriding `score`
+    - Result: `previousHealth` in watch notifications had new `alive`, `ready`, `latencyEwma`, `consecutiveFailures` fields — only `score` was actually old
+    - **Fix:** Capture full `previousHealth = { ...inst.health }` before calling `probe()`
+
+### Bugs Found & Fixed (March 20, 2026 — AM audit)
 
 7. **Vitest picking up compiled dist/__tests__/ files (FIXED)**
    - No vitest.config.ts existed, so vitest's default include glob matched `dist/__tests__/*.test.js`
@@ -86,9 +93,9 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 
 5. **Duplicate utility classes in 3 files** — `EWMATracker` and `WelfordStats` are still duplicated in `lease-consensus.ts`, `eventually-consistent-index.ts`, and `transactional-outbox.ts` instead of importing from `shared-utils.ts`
 
-### Missing Test Coverage (18 of 35 modules untested)
-- 18 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh
-- High-priority untested: service-discovery-mesh, backoff-coordinator, chaos-testing-harness
+### Missing Test Coverage (15 of 35 modules untested)
+- 20 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator
+- High-priority untested: chaos-testing-harness
 - `state-machine.ts` is a duplicate of `observable-state-machine.ts` (pre-fix version) — skip
 - All untested modules compile and export correctly — but no behavioral verification
 
@@ -121,6 +128,9 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Fix ResourcePoolManager unused variable in computeFairShare
 - [x] Add tests for adaptive-routing-mesh (60 tests covering all 9 subsystems: TopologyTracker, LatencyPredictor, PathScorer, RouteCache, MultiPathRouter, CongestionDetector, FailureCorrelator, TrafficShaper, AdaptiveRoutingEngine + presets)
 - [x] Fix adaptive-routing-mesh Dijkstra bug — compared weighted distance against maxHops instead of hop count, breaking all multi-hop routing
+- [x] Add tests for service-discovery-mesh (41 tests covering LocalRegistry, HealthChecker, LocalityScorer, WatchManager, GossipDisseminator, SplitBrainDetector, full mesh lifecycle, gossip round-trip, query filtering by attributes/version/load)
+- [x] Fix ServiceDiscoveryMesh tick() previousHealth bug — was capturing new health state instead of old
+- [x] Add tests for backoff-coordinator (30 tests covering BackoffCalculator strategies, BackoffCoordinator lifecycle, correlated failure detection, escalation/blackout, dependency inheritance, SlotManager, CorrelationDetector, presets)
 
 ## Phase 2: Cloud Product (March 23-30)
 - [ ] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination

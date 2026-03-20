@@ -1074,16 +1074,16 @@ class ServiceDiscoveryMesh {
 
     // Health checks
     for (const inst of this.registry.getActive()) {
-      const oldScore = inst.health.score;
+      const previousHealth = { ...inst.health };
       inst.health = this.healthChecker.probe(inst, t);
       healthChecks++;
 
-      if (Math.abs(inst.health.score - oldScore) > 0.1) {
-        this.emit({ type: 'health-changed', instanceId: inst.instanceId, oldScore, newScore: inst.health.score });
+      if (Math.abs(inst.health.score - previousHealth.score) > 0.1) {
+        this.emit({ type: 'health-changed', instanceId: inst.instanceId, oldScore: previousHealth.score, newScore: inst.health.score });
         this.watchManager.notify({
           type: 'health-changed',
           instance: inst,
-          previousHealth: { ...inst.health, score: oldScore } as HealthStatus,
+          previousHealth,
           timestamp: t,
         });
       }
