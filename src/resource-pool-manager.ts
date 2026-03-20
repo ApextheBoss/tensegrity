@@ -481,7 +481,6 @@ export class ResourcePoolManager {
     for (const [agentId, policies] of this.quotas) {
       const policy = policies.find(p => p.resourceType === resourceType);
       if (policy) {
-        const currentUsage = this.getAgentUsage(agentId, resourceType);
         demands.set(agentId, {
           demand: policy.maxAllocation,
           weight: policy.priorityWeight,
@@ -771,9 +770,22 @@ export class ResourcePoolManager {
     if (!policy) return true;
 
     const currentUsage = this.getAgentUsage(agentId, resourceType);
-    const effectiveLimit = policy.maxAllocation + this.getBurstAllowance(agentId, policy);
+    const burstAvailable = this.getBurstAllowance(agentId, policy);
+    const effectiveLimit = policy.maxAllocation + burstAvailable;
 
-    return currentUsage + amount <= effectiveLimit;
+    if (currentUsage + amount > effectiveLimit) return false;
+
+    // Track burst consumption if allocation exceeds base max
+    const overBase = (currentUsage + amount) - policy.maxAllocation;
+    if (overBase > 0) {
+      const key = `${agentId}:${policy.resourceType}`;
+      const tracking = this.burstTracking.get(key);
+      if (tracking) {
+        tracking.used += overBase;
+      }
+    }
+
+    return true;
   }
 
   private getBurstAllowance(agentId: string, policy: QuotaPolicy): number {

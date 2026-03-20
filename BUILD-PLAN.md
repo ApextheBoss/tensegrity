@@ -45,7 +45,21 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 
 ### Remaining Issues
 
-### Bugs Found (March 20, 2026 — cron audit)
+### Bugs Found & Fixed (March 20, 2026 — cron audit)
+
+7. **Vitest picking up compiled dist/__tests__/ files (FIXED)**
+   - No vitest.config.ts existed, so vitest's default include glob matched `dist/__tests__/*.test.js`
+   - These CommonJS files can't import vitest, causing 16 test file failures
+   - **Fix:** Added `vitest.config.ts` with explicit `include: ['src/__tests__/**/*.test.ts']` and `exclude: ['dist/**']`
+
+8. **ResourcePoolManager: burst tracking never consumed (FIXED)**
+   - `getBurstAllowance()` checked `tracking.used` but nothing ever incremented it
+   - Result: agents could burst indefinitely within a window — burst allowance was effectively infinite
+   - **Fix:** `checkQuota()` now increments `tracking.used` when allocation exceeds base `maxAllocation`
+
+9. **ResourcePoolManager: unused variable in computeFairShare (FIXED)**
+   - `currentUsage` was computed but never used in the fair-share calculation
+   - Removed dead code
 
 6. **ObservableStateMachine: tick() only notifies observers for fatal invariant violations**
    - `InvariantChecker.check()` returns `false` only when severity is `'fatal'`
@@ -72,9 +86,9 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 
 5. **Duplicate utility classes in 3 files** — `EWMATracker` and `WelfordStats` are still duplicated in `lease-consensus.ts`, `eventually-consistent-index.ts`, and `transactional-outbox.ts` instead of importing from `shared-utils.ts`
 
-### Missing Test Coverage (19 of 35 modules untested)
-- 16 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing
-- High-priority untested: resource-pool-manager
+### Missing Test Coverage (18 of 35 modules untested)
+- 17 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager
+- High-priority untested: state-machine, adaptive-routing-mesh, service-discovery-mesh
 - All untested modules compile and export correctly — but no behavioral verification
 
 ### Architecture Observations
@@ -100,6 +114,10 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Fix: observable-state-machine tick() only notifies observers for fatal invariant violations — changed check() to return {anyViolation, fatal}, tick() now notifies for all severities
 - [x] Add tests for distributed-barrier-synchronizer (62 tests covering all 8 subsystems + found/fixed falsy-zero openedAt bug in tick())
 - [x] Add tests for adaptive-work-stealing (62 tests covering all 9 subsystems: WorkDeque, TopologyCostModel, AffinityTracker, VictimSelector, LoadImbalanceDetector, TaskFragmentationAnalyzer, StealPolicyController, TaskSplitter, AdaptiveWorkStealingPool + presets)
+- [x] Add vitest.config.ts to exclude dist/ from test discovery (was causing 16 false test failures)
+- [x] Add tests for resource-pool-manager (44 tests covering allocation, release, renewal, preemption, quotas, burst tracking, expiry reclamation, fair-share, health monitoring, scaling triggers, priority wait queue, destroy, templates)
+- [x] Fix ResourcePoolManager burst tracking bug — burst allowance was never consumed, allowing infinite burst within a window
+- [x] Fix ResourcePoolManager unused variable in computeFairShare
 
 ## Phase 2: Cloud Product (March 23-30)
 - [ ] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
