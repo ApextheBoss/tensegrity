@@ -519,10 +519,12 @@ class MultiPathRouter {
     excludedNodes: Set<string> = new Set()
   ): Route | null {
     const dist: Map<string, number> = new Map();
+    const hops: Map<string, number> = new Map();
     const prev: Map<string, string> = new Map();
     const visited = new Set<string>();
 
     dist.set(source, 0);
+    hops.set(source, 0);
 
     // Simple priority queue via sorted array
     const queue: Array<{ node: string; dist: number }> = [{ node: source, dist: 0 }];
@@ -552,7 +554,7 @@ class MultiPathRouter {
         };
       }
 
-      if ((dist.get(node) ?? 0) > this.maxHops) continue;
+      if ((hops.get(node) ?? 0) >= this.maxHops) continue;
 
       for (const neighbor of this.topology.getNeighbors(node)) {
         if (excludedNodes.has(neighbor)) continue;
@@ -567,6 +569,7 @@ class MultiPathRouter {
 
         if (alt < (dist.get(neighbor) ?? Infinity)) {
           dist.set(neighbor, alt);
+          hops.set(neighbor, (hops.get(node) ?? 0) + 1);
           prev.set(neighbor, node);
           queue.push({ node: neighbor, dist: alt });
         }
