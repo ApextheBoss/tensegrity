@@ -236,7 +236,7 @@ describe('InvariantChecker', () => {
       enteredAt: new Map(), transitionCount: 0, startedAt: 0,
     };
     const result = checker.check(state, ctx, 100);
-    expect(result).toBe(true); // error severity doesn't fail
+    expect(result).toEqual({ anyViolation: true, fatal: false });
     expect(checker.getViolationCount()).toBe(1);
     expect(checker.getViolations()[0].invariant).toBe('positive');
   });
@@ -252,7 +252,7 @@ describe('InvariantChecker', () => {
       currentStates: new Map(), history: new Map(), data: {},
       enteredAt: new Map(), transitionCount: 0, startedAt: 0,
     };
-    expect(checker.check(state, ctx, 0)).toBe(false);
+    expect(checker.check(state, ctx, 0)).toEqual({ anyViolation: true, fatal: true });
   });
 
   it('clearViolations works', () => {
@@ -751,7 +751,7 @@ describe('Invariants', () => {
     m.tick();
     expect(violations.length).toBe(1);
   });
-  it('BUG: non-fatal invariant violations do NOT trigger observer notification', () => {
+  it('non-fatal invariant violations DO trigger observer notification (bug fixed)', () => {
     const violations: StateChangeEvent[] = [];
     const m = new StateMachineBuilder({ deadlockDetectionEnabled: false })
       .state('active', {
@@ -769,8 +769,8 @@ describe('Invariants', () => {
     m.tick();
     // Violation IS recorded internally...
     expect(m.getInvariantViolations().length).toBeGreaterThan(0);
-    // ...but observers are NOT notified (only fatal triggers notification)
-    expect(violations.length).toBe(0);
+    // ...and observers ARE notified for all severities (fixed)
+    expect(violations.length).toBe(1);
   });
 });
 

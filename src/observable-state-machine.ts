@@ -310,8 +310,9 @@ class InvariantChecker {
     timestamp: number;
   }> = [];
 
-  check(state: StateDefinition, context: MachineContext, now: number): boolean {
-    let allPassed = true;
+  check(state: StateDefinition, context: MachineContext, now: number): { anyViolation: boolean; fatal: boolean } {
+    let anyViolation = false;
+    let fatal = false;
     for (const inv of state.invariants) {
       if (!inv.condition(context)) {
         this.violations.push({
@@ -321,10 +322,11 @@ class InvariantChecker {
           message: inv.message,
           timestamp: now,
         });
-        if (inv.severity === 'fatal') allPassed = false;
+        anyViolation = true;
+        if (inv.severity === 'fatal') fatal = true;
       }
     }
-    return allPassed;
+    return { anyViolation, fatal };
   }
 
   getViolations(since?: number): typeof this.violations {
@@ -732,8 +734,8 @@ class ObservableStateMachine {
     for (const [region, state] of this.context.currentStates) {
       const stateDef = this.registry.get(state);
       if (stateDef) {
-        const passed = this.invariants.check(stateDef, this.context, now);
-        if (!passed) {
+        const result = this.invariants.check(stateDef, this.context, now);
+        if (result.anyViolation) {
           this.observers.notify({
             type: 'invariant-violation',
             state,
