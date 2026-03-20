@@ -329,13 +329,15 @@ class BTreeIndex {
     let i = 0;
     while (i < node.keys.length && key > node.keys[i]) i++;
     if (i < node.keys.length && key === node.keys[i]) {
+      const before = node.values[i].length;
       node.values[i] = node.values[i].filter(e => e.docId !== docId);
+      const removed = before - node.values[i].length;
+      this.size -= removed;
       if (node.values[i].length === 0) {
         node.keys.splice(i, 1);
         node.values.splice(i, 1);
-        this.size--;
       }
-      return true;
+      return removed > 0;
     }
     if (node.isLeaf) return false;
     return this.removeFromNode(node.children[i], key, docId);
