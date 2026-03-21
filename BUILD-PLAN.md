@@ -117,6 +117,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - 26 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator, adaptive-throttle-governor, eventually-consistent-index, agent-network-partitioner, chaos-testing-harness, distributed-barrier-synchronizer, capability-health-monitor
 - ~~High-priority untested: chaos-testing-harness~~ ✅ 57 tests added
 - ~~`capability-health-monitor.ts`~~ ✅ 62 tests added
+- ~~`agent-capability-marketplace.ts`~~ ✅ 56 tests added
 - `state-machine.ts` is a duplicate of `observable-state-machine.ts` (pre-fix version) — skip
 - ~~`rate-aware-federation.ts`~~ ✅ 54 tests added
 - ~~`eventually-consistent-index.ts`~~ ✅ 64 tests added
