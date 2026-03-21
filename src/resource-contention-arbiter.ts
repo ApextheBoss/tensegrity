@@ -1151,6 +1151,11 @@ class ResourceContentionArbiter {
     
     const result = this.auctionEngine.resolveAuction(auctionId);
     if (result && result.winnerId === demand.agentId) {
+      // Reclaim capacity from losing incumbents to make room for the winner
+      for (const alloc of currentAllocs) {
+        this.revokeAllocation(alloc.agentId, resource.id);
+      }
+      
       events.push({
         type: 'auction-completed',
         resourceId: resource.id,
