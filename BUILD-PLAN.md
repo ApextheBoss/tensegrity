@@ -99,16 +99,15 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
    - When `drop-oldest` fires, the *old* message was already recorded as `recordIn()`, and the *new* message also gets `recordIn()`. The dropped old message inflates the historical in-rate
    - Minor issue, but `inRate` in metrics will be slightly inaccurate under sustained drop-oldest pressure
 
-11. **QueryPlanner doesn't handle 'covering' index type (BUG)**
-    - `plan()` switch cases for query types only check `idx.type === 'hash' | 'btree' | 'inverted'`
-    - Indexes with `type: 'covering'` never match any case, so queries always fall back to fullscan
-    - Covering indexes store data correctly (including payload from coveringFields) but are never selected by the planner
-    - **Recommendation:** Treat 'covering' the same as 'hash' in the planner's type checks
+11. ~~**QueryPlanner doesn't handle 'covering' index type (FIXED)**~~
+    - `plan()` switch cases for query types only checked `idx.type === 'hash' | 'btree' | 'inverted'`
+    - Indexes with `type: 'covering'` never matched any case, so queries always fell back to fullscan
+    - **Fix:** Added `idx.type === 'covering'` to the `'exact'` case alongside `'hash'`
 
 5. **Duplicate utility classes in 3 files** — `EWMATracker` and `WelfordStats` are still duplicated in `lease-consensus.ts`, `eventually-consistent-index.ts`, and `transactional-outbox.ts` instead of importing from `shared-utils.ts`
 
 ### Missing Test Coverage (14 of 35 modules untested)
-- 23 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator, adaptive-throttle-governor, eventually-consistent-index, agent-network-partitioner
+- 25 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator, adaptive-throttle-governor, eventually-consistent-index, agent-network-partitioner, chaos-testing-harness, distributed-barrier-synchronizer
 - ~~High-priority untested: chaos-testing-harness~~ ✅ 57 tests added
 - `state-machine.ts` is a duplicate of `observable-state-machine.ts` (pre-fix version) — skip
 - ~~`eventually-consistent-index.ts`~~ ✅ 64 tests added
