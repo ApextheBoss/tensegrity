@@ -9,7 +9,7 @@
 - 37 source files, ~36K lines TypeScript
 - Compiles to dist/
 - **Published to npm** as `tensegrity@0.1.0` ✅
-- **1,240 tests** across 30 test suites, all passing ✅
+- **1,292 tests** across 31 test suites, all passing ✅
 - TypeScript compiles clean (0 errors) ✅
 - 28+ modules fully tested, 7 remaining untested (see below)
 - Zero runtime dependencies (devDep: vitest only)
@@ -67,7 +67,21 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
     - Tests passed at runtime (Vitest doesn't type-check) but `tsc --noEmit` had 4 errors
     - **Fix:** Added `as string` cast to all 4 occurrences
 
+### Bugs Found & Fixed (March 21, 2026 — evening cron audit)
+
+14. **resource-contention-arbiter: unused fnv1aHash import (FIXED)**
+    - `fnv1aHash` imported from shared-utils but never used anywhere in the module
+    - **Fix:** Removed unused import
+
 ### Remaining Issues
+
+15. **ResourceContentionArbiter: resolveViaAuction() grants allocation without freeing capacity**
+    - When the auction winner is the new requestor, `grantAllocation()` adds to the allocations array without reclaiming resources from losing incumbents
+    - Unlike `resolveViaBargaining()` which adjusts existing allocation quantities, the auction path just adds — potentially exceeding resource capacity
+    - **Recommendation:** After auction winner is determined, reduce or remove losing incumbents' allocations before granting new one
+
+16. **7 modules still untested: consensus-view-synchronizer, contract-upgrade-proxy, hierarchical-consensus, resource-contention-arbiter, scheduler-affinity-graph, state-machine, token-economy-engine**
+    - ~8,800 lines of untested code
 
 ### Bugs Found & Fixed (March 20, 2026 — PM audit)
 
