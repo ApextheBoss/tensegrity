@@ -6,10 +6,10 @@
 "Every agent framework handles LLM calls. None of them handle what happens when agents crash, overload, or need to coordinate. That's Tensegrity."
 
 ## Current State (March 21, 2026)
-- 36 source files, ~36K lines TypeScript
+- 37 source files, ~36K lines TypeScript
 - Compiles to dist/
 - **Published to npm** as `tensegrity@0.1.0` ✅
-- **1,217 tests** across 29 test suites, all passing ✅
+- **1,240 tests** across 30 test suites, all passing ✅
 - TypeScript compiles clean (0 errors) ✅
 - 28+ modules fully tested, 7 remaining untested (see below)
 - Zero runtime dependencies (devDep: vitest only)
@@ -171,8 +171,9 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Fix capability-health-monitor unused import + duplicate Welford utilities — replaced with shared-utils imports — size was only decremented when entire key was emptied, not when individual entries were removed. After inserting N entries under the same key and removing one, getSize() was still N instead of N-1.
 
 ## Phase 2: Cloud Product (March 23-30)
-- [ ] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
-- [ ] Build cloud server (Hono + WebSocket) — already have hono dep in package.json
+- [x] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
+- [x] Build cloud server (Hono + REST API) — server.ts with workspace/agent/routing/dashboard endpoints
+- [x] Build cloud client SDK (src/cloud-client.ts) — WebSocket client with auto-reconnect, heartbeats, task routing, request/response protocol, 21 tests
 - [ ] Dashboard — agent health, task routing visualization, failure rates
 - [ ] Deploy on VibeKit
 - [ ] Implement usage metering + Stripe billing
