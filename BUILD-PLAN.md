@@ -78,7 +78,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 15. ~~**ResourceContentionArbiter: resolveViaAuction() grants allocation without freeing capacity (FIXED)**~~
     - `resolveViaAuction()` now revokes losing incumbents' allocations before granting to the winner
 
-16. **5 modules still untested: contract-upgrade-proxy, hierarchical-consensus, scheduler-affinity-graph, state-machine, token-economy-engine**
+16. **4 modules still untested: hierarchical-consensus, scheduler-affinity-graph, state-machine, token-economy-engine**
     - state-machine is a duplicate of observable-state-machine (skip)
     - ~7,500 lines of untested code
 
@@ -135,10 +135,11 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 5. **Duplicate utility classes in 3 files** — `EWMATracker` and `WelfordStats` are still duplicated in `lease-consensus.ts`, `eventually-consistent-index.ts`, and `transactional-outbox.ts` instead of importing from `shared-utils.ts`
 
 ### Missing Test Coverage (7 of 35 modules untested)
-- 30 modules have tests (33 test files, 1,428 tests): circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator, adaptive-throttle-governor, eventually-consistent-index, agent-network-partitioner, chaos-testing-harness, distributed-barrier-synchronizer, capability-health-monitor, agent-capability-marketplace, rate-aware-federation, autonomous-task-decomposer, consensus-view-synchronizer
+- 31 modules have tests (34 test files, 1,490 tests): circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator, adaptive-throttle-governor, eventually-consistent-index, agent-network-partitioner, chaos-testing-harness, distributed-barrier-synchronizer, capability-health-monitor, agent-capability-marketplace, rate-aware-federation, autonomous-task-decomposer, consensus-view-synchronizer
 - ~~High-priority untested: chaos-testing-harness~~ ✅ 57 tests added
 - ~~`capability-health-monitor.ts`~~ ✅ 62 tests added
 - ~~`agent-capability-marketplace.ts`~~ ✅ 56 tests added
+- ~~`contract-upgrade-proxy.ts`~~ ✅ 62 tests added
 - `state-machine.ts` is a duplicate of `observable-state-machine.ts` (pre-fix version) — skip
 - ~~`rate-aware-federation.ts`~~ ✅ 54 tests added
 - ~~`eventually-consistent-index.ts`~~ ✅ 64 tests added
