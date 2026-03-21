@@ -649,7 +649,7 @@ describe('TaskDecompositionEngine', () => {
     const plan = engine.decompose(root, subs, caps);
 
     // Find planId
-    const planId = Array.from((engine as any).plans.keys())[0];
+    const planId = Array.from((engine as any).plans.keys())[0] as string;
 
     // Mark first task complete
     const nodeA = plan.nodes.get('a');
@@ -682,7 +682,7 @@ describe('TaskDecompositionEngine', () => {
     const caps = new Map([['cap-a', 3]]);
     engine.decompose(root, subs, caps);
 
-    const planId = Array.from((engine as any).plans.keys())[0];
+    const planId = Array.from((engine as any).plans.keys())[0] as string;
     const plan = engine.getPlan(planId)!;
 
     // Complete task a, which changes remaining work
@@ -703,7 +703,7 @@ describe('TaskDecompositionEngine', () => {
     const subs = [makeTask({ id: 'a' })];
     engine.decompose(root, subs, new Map([['cap-a', 1]]));
 
-    const planId = Array.from((engine as any).plans.keys())[0];
+    const planId = Array.from((engine as any).plans.keys())[0] as string;
     expect(engine.getPlan(planId)).toBeDefined();
     expect(engine.getPlan('nonexistent')).toBeUndefined();
   });

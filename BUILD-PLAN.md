@@ -9,8 +9,9 @@
 - 36 source files, ~36K lines TypeScript
 - Compiles to dist/
 - **Published to npm** as `tensegrity@0.1.0` ✅
-- **1,162 tests** across 28 test suites, all passing ✅
-- 26+ modules fully tested, remaining experimental modules compile clean
+- **1,217 tests** across 29 test suites, all passing ✅
+- TypeScript compiles clean (0 errors) ✅
+- 28+ modules fully tested, 7 remaining untested (see below)
 - Zero runtime dependencies (devDep: vitest only)
 - GitHub: https://github.com/ApextheBoss/tensegrity
 
@@ -58,6 +59,13 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
     - `fnv1aHash` was imported from shared-utils but never used anywhere in the file
     - Module defined its own `WelfordState`, `welfordInit`, `welfordUpdate`, `welfordVariance`, `welfordStdDev` — exact duplicates of the functional Welford in `shared-utils.ts`
     - **Fix:** Removed unused `fnv1aHash` import, replaced local Welford functions with `createWelford`, `updateWelford`, `getStdDev` from shared-utils
+
+### Bugs Found & Fixed (March 21, 2026 — PM cron audit)
+
+13. **autonomous-task-decomposer.test.ts: TypeScript errors from untyped Map key access (FIXED)**
+    - `Array.from((engine as any).plans.keys())[0]` returns `unknown` — 4 call sites passed this to methods expecting `string`
+    - Tests passed at runtime (Vitest doesn't type-check) but `tsc --noEmit` had 4 errors
+    - **Fix:** Added `as string` cast to all 4 occurrences
 
 ### Remaining Issues
 
@@ -114,8 +122,8 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 
 5. **Duplicate utility classes in 3 files** — `EWMATracker` and `WelfordStats` are still duplicated in `lease-consensus.ts`, `eventually-consistent-index.ts`, and `transactional-outbox.ts` instead of importing from `shared-utils.ts`
 
-### Missing Test Coverage (13 of 35 modules untested)
-- 26 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator, adaptive-throttle-governor, eventually-consistent-index, agent-network-partitioner, chaos-testing-harness, distributed-barrier-synchronizer, capability-health-monitor
+### Missing Test Coverage (7 of 35 modules untested)
+- 28 modules have tests (29 test files, 1,217 tests): circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator, adaptive-throttle-governor, eventually-consistent-index, agent-network-partitioner, chaos-testing-harness, distributed-barrier-synchronizer, capability-health-monitor, agent-capability-marketplace, rate-aware-federation, autonomous-task-decomposer
 - ~~High-priority untested: chaos-testing-harness~~ ✅ 57 tests added
 - ~~`capability-health-monitor.ts`~~ ✅ 62 tests added
 - ~~`agent-capability-marketplace.ts`~~ ✅ 56 tests added
