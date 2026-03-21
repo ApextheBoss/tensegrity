@@ -122,7 +122,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 5. **Duplicate utility classes in 3 files** — `EWMATracker` and `WelfordStats` are still duplicated in `lease-consensus.ts`, `eventually-consistent-index.ts`, and `transactional-outbox.ts` instead of importing from `shared-utils.ts`
 
 ### Missing Test Coverage (7 of 35 modules untested)
-- 28 modules have tests (29 test files, 1,217 tests): circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator, adaptive-throttle-governor, eventually-consistent-index, agent-network-partitioner, chaos-testing-harness, distributed-barrier-synchronizer, capability-health-monitor, agent-capability-marketplace, rate-aware-federation, autonomous-task-decomposer
+- 29 modules have tests (31 test files, 1,292 tests): circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator, adaptive-throttle-governor, eventually-consistent-index, agent-network-partitioner, chaos-testing-harness, distributed-barrier-synchronizer, capability-health-monitor, agent-capability-marketplace, rate-aware-federation, autonomous-task-decomposer
 - ~~High-priority untested: chaos-testing-harness~~ ✅ 57 tests added
 - ~~`capability-health-monitor.ts`~~ ✅ 62 tests added
 - ~~`agent-capability-marketplace.ts`~~ ✅ 56 tests added
@@ -174,7 +174,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
 - [x] Build cloud server (Hono + REST API) — server.ts with workspace/agent/routing/dashboard endpoints
 - [x] Build cloud client SDK (src/cloud-client.ts) — WebSocket client with auto-reconnect, heartbeats, task routing, request/response protocol, 21 tests
-- [ ] Dashboard — agent health, task routing visualization, failure rates
+- [x] Dashboard — agent health, task routing visualization, failure rates (cloud-dashboard.ts, 52 tests)
 - [ ] Deploy on VibeKit
 - [ ] Implement usage metering + Stripe billing
 - [ ] Landing page at tensegrity.dev (or similar)
