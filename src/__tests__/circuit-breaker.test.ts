@@ -143,6 +143,19 @@ describe('CircuitBreakerRegistry', () => {
     expect(b1).toBe(b2); // same instance
   });
 
+  it('throws when passing config to existing breaker via get()', () => {
+    const reg = new CircuitBreakerRegistry();
+    reg.get('agent-a', { failureThreshold: 5 });
+    expect(() => reg.get('agent-a', { failureThreshold: 1 })).toThrow(/already exists/);
+  });
+
+  it('getOrCreate silently ignores config on existing breaker', () => {
+    const reg = new CircuitBreakerRegistry();
+    const b1 = reg.getOrCreate('agent-a', { failureThreshold: 5 });
+    const b2 = reg.getOrCreate('agent-a', { failureThreshold: 1 });
+    expect(b1).toBe(b2);
+  });
+
   it('tracks open circuits', async () => {
     const reg = new CircuitBreakerRegistry();
     const b = reg.get('agent-broken', { failureThreshold: 1 });

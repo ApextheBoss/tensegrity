@@ -83,6 +83,11 @@ export class BackpressureController<T = unknown> {
           if (this.queue.length >= this.config.maxQueueDepth) {
             this.queue.shift(); // remove oldest
             this.dropped++;
+            // Remove one inTimestamp to compensate for the dropped message's
+            // original recordIn(), preventing inRate inflation
+            if (this.inTimestamps.length > 0) {
+              this.inTimestamps.shift();
+            }
           }
           break;
 

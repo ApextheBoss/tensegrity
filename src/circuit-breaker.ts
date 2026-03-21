@@ -140,6 +140,22 @@ export class CircuitBreakerRegistry {
   private breakers = new Map<string, CircuitBreaker>();
 
   get(agentAddress: string, config?: Partial<CircuitBreakerConfig>): CircuitBreaker {
+    const existing = this.breakers.get(agentAddress);
+    if (existing) {
+      if (config !== undefined) {
+        throw new Error(
+          `CircuitBreaker for "${agentAddress}" already exists. Cannot apply new config to an existing breaker. Use getOrCreate() for first-call-wins semantics.`
+        );
+      }
+      return existing;
+    }
+    const breaker = new CircuitBreaker(agentAddress, config);
+    this.breakers.set(agentAddress, breaker);
+    return breaker;
+  }
+
+  /** Returns existing breaker or creates one. If breaker exists, config is silently ignored (first-call-wins). */
+  getOrCreate(agentAddress: string, config?: Partial<CircuitBreakerConfig>): CircuitBreaker {
     if (!this.breakers.has(agentAddress)) {
       this.breakers.set(agentAddress, new CircuitBreaker(agentAddress, config));
     }
