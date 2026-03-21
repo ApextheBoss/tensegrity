@@ -9,7 +9,7 @@
 - 37 source files, ~36K lines TypeScript
 - Compiles to dist/
 - **Published to npm** as `tensegrity@0.1.0` ✅
-- **1,292 tests** across 31 test suites, all passing ✅
+- **1,363 tests** across 32 test suites, all passing ✅
 - TypeScript compiles clean (0 errors) ✅
 - 28+ modules fully tested, 7 remaining untested (see below)
 - Zero runtime dependencies (devDep: vitest only)
@@ -75,13 +75,12 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 
 ### Remaining Issues
 
-15. **ResourceContentionArbiter: resolveViaAuction() grants allocation without freeing capacity**
-    - When the auction winner is the new requestor, `grantAllocation()` adds to the allocations array without reclaiming resources from losing incumbents
-    - Unlike `resolveViaBargaining()` which adjusts existing allocation quantities, the auction path just adds — potentially exceeding resource capacity
-    - **Recommendation:** After auction winner is determined, reduce or remove losing incumbents' allocations before granting new one
+15. ~~**ResourceContentionArbiter: resolveViaAuction() grants allocation without freeing capacity (FIXED)**~~
+    - `resolveViaAuction()` now revokes losing incumbents' allocations before granting to the winner
 
-16. **7 modules still untested: consensus-view-synchronizer, contract-upgrade-proxy, hierarchical-consensus, resource-contention-arbiter, scheduler-affinity-graph, state-machine, token-economy-engine**
-    - ~8,800 lines of untested code
+16. **6 modules still untested: consensus-view-synchronizer, contract-upgrade-proxy, hierarchical-consensus, scheduler-affinity-graph, state-machine, token-economy-engine**
+    - state-machine is a duplicate of observable-state-machine (skip)
+    - ~7,500 lines of untested code
 
 ### Bugs Found & Fixed (March 20, 2026 — PM audit)
 
@@ -183,6 +182,8 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Fix BTreeIndex.remove() size tracking bug
 - [x] Add tests for capability-health-monitor (62 tests covering CapabilityProbe, DegradationDetector, FailurePredictor, CapabilityScorecard, RemediationEngine, HealthFederator, full orchestrator, presets)
 - [x] Fix capability-health-monitor unused import + duplicate Welford utilities — replaced with shared-utils imports — size was only decremented when entire key was emptied, not when individual entries were removed. After inserting N entries under the same key and removing one, getSize() was still N instead of N-1.
+- [x] Add tests for resource-contention-arbiter (71 tests covering all 8 subsystems: ResourceDemandTracker, AuctionEngine, CooperativeBargainer, StarvationDetector, ContentionPredictor, WaitDieProtocol, ResourceBudgetPlanner, PreemptionManager, full orchestrator + presets)
+- [x] Fix ResourceContentionArbiter resolveViaAuction() bug — auction winner was granted without revoking losing incumbents' allocations, potentially exceeding resource capacity
 
 ## Phase 2: Cloud Product (March 23-30)
 - [x] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
