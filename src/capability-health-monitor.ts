@@ -1,4 +1,4 @@
-import { fnv1aHash } from './shared-utils';
+import { WelfordState, createWelford, updateWelford, getStdDev } from './shared-utils';
 /**
  * Capability Health Monitor
  * 
@@ -16,34 +16,6 @@ import { fnv1aHash } from './shared-utils';
  * 
  * @author Apex
  */
-
-// ─── Utilities ────────────────────────────────────────────────────────────
-
-interface WelfordState {
-  count: number;
-  mean: number;
-  m2: number;
-}
-
-function welfordInit(): WelfordState {
-  return { count: 0, mean: 0, m2: 0 };
-}
-
-function welfordUpdate(state: WelfordState, value: number): void {
-  state.count++;
-  const delta = value - state.mean;
-  state.mean += delta / state.count;
-  const delta2 = value - state.mean;
-  state.m2 += delta * delta2;
-}
-
-function welfordVariance(state: WelfordState): number {
-  return state.count < 2 ? 0 : state.m2 / (state.count - 1);
-}
-
-function welfordStdDev(state: WelfordState): number {
-  return Math.sqrt(welfordVariance(state));
-}
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -196,9 +168,9 @@ class CapabilityProbe {
     if (result.success) {
       const latencyKey = `${key}:${result.type}`;
       if (!this.latencyStats.has(latencyKey)) {
-        this.latencyStats.set(latencyKey, welfordInit());
+        this.latencyStats.set(latencyKey, createWelford());
       }
-      welfordUpdate(this.latencyStats.get(latencyKey)!, result.latencyMs);
+      updateWelford(this.latencyStats.get(latencyKey)!, result.latencyMs);
 
       const prev = this.ewmaLatency.get(latencyKey) ?? result.latencyMs;
       this.ewmaLatency.set(latencyKey, this.ewmaAlpha * result.latencyMs + (1 - this.ewmaAlpha) * prev);
@@ -222,7 +194,7 @@ class CapabilityProbe {
     }
     return {
       mean: stats.mean,
-      stdDev: welfordStdDev(stats),
+      stdDev: getStdDev(stats),
       ewma: this.ewmaLatency.get(key) ?? stats.mean,
       count: stats.count
     };

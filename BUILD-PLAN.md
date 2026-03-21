@@ -51,6 +51,13 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
     - Result: after inserting 3 entries under the same key and removing 1, `getSize()` returned 3 instead of 2
     - **Fix:** Compute `removed = before - after` from the filter and decrement size by that amount
 
+### Bugs Found & Fixed (March 21, 2026 — AM cron audit)
+
+12. **capability-health-monitor: unused import + duplicate Welford utilities (FIXED)**
+    - `fnv1aHash` was imported from shared-utils but never used anywhere in the file
+    - Module defined its own `WelfordState`, `welfordInit`, `welfordUpdate`, `welfordVariance`, `welfordStdDev` — exact duplicates of the functional Welford in `shared-utils.ts`
+    - **Fix:** Removed unused `fnv1aHash` import, replaced local Welford functions with `createWelford`, `updateWelford`, `getStdDev` from shared-utils
+
 ### Remaining Issues
 
 ### Bugs Found & Fixed (March 20, 2026 — PM audit)
@@ -106,9 +113,10 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 
 5. **Duplicate utility classes in 3 files** — `EWMATracker` and `WelfordStats` are still duplicated in `lease-consensus.ts`, `eventually-consistent-index.ts`, and `transactional-outbox.ts` instead of importing from `shared-utils.ts`
 
-### Missing Test Coverage (14 of 35 modules untested)
-- 25 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator, adaptive-throttle-governor, eventually-consistent-index, agent-network-partitioner, chaos-testing-harness, distributed-barrier-synchronizer
+### Missing Test Coverage (13 of 35 modules untested)
+- 26 modules have tests: circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator, adaptive-throttle-governor, eventually-consistent-index, agent-network-partitioner, chaos-testing-harness, distributed-barrier-synchronizer, capability-health-monitor
 - ~~High-priority untested: chaos-testing-harness~~ ✅ 57 tests added
+- ~~`capability-health-monitor.ts`~~ ✅ 62 tests added
 - `state-machine.ts` is a duplicate of `observable-state-machine.ts` (pre-fix version) — skip
 - ~~`eventually-consistent-index.ts`~~ ✅ 64 tests added
 - All untested modules compile and export correctly — but no behavioral verification
@@ -148,7 +156,9 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Add tests for chaos-testing-harness (57 tests covering MetricCollector, HypothesisEvaluator, BlastRadiusController, KillSwitchMonitor, TargetResolver, FaultInjector, PreflightChecker, ExperimentEngine full lifecycle, GameDayCoordinator, pre-built scenarios)
 - [x] Add tests for eventually-consistent-index (64 tests covering InvertedIndex, BTreeIndex, HashIndex, IndexVersionVector, ConflictResolver, QueryPlanner, StaleReadDetector, IndexCompactor, ConvergenceChecker, full orchestrator)
 - [x] Add tests for eventually-consistent-index (64 tests covering InvertedIndex BM25/search/remove/prefix, BTreeIndex insert/search/range/remove/splits, HashIndex insert/lookup/unique/remove, IndexVersionVector increment/merge/dominates/divergence, ConflictResolver lww/highest_version/merge_union/priority, QueryPlanner hash/btree/fullscan/covering, StaleReadDetector stale/fresh/rate, full orchestrator upsert/delete/range/fulltext/remote-updates/convergence/tick/rebuild/sparse/presets)
-- [x] Fix BTreeIndex.remove() size tracking bug — size was only decremented when entire key was emptied, not when individual entries were removed. After inserting N entries under the same key and removing one, getSize() was still N instead of N-1.
+- [x] Fix BTreeIndex.remove() size tracking bug
+- [x] Add tests for capability-health-monitor (62 tests covering CapabilityProbe, DegradationDetector, FailurePredictor, CapabilityScorecard, RemediationEngine, HealthFederator, full orchestrator, presets)
+- [x] Fix capability-health-monitor unused import + duplicate Welford utilities — replaced with shared-utils imports — size was only decremented when entire key was emptied, not when individual entries were removed. After inserting N entries under the same key and removing one, getSize() was still N instead of N-1.
 
 ## Phase 2: Cloud Product (March 23-30)
 - [ ] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
