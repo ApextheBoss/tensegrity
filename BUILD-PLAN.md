@@ -5,13 +5,13 @@
 
 "Every agent framework handles LLM calls. None of them handle what happens when agents crash, overload, or need to coordinate. That's Tensegrity."
 
-## Current State (March 21, 2026)
+## Current State (March 22, 2026)
 - 37 source files, ~36K lines TypeScript
 - Compiles to dist/
 - **Published to npm** as `tensegrity@0.1.0` ✅
-- **1,428 tests** across 33 test suites, all passing ✅
+- **1,545 tests** across 35 test suites, all passing ✅
 - TypeScript compiles clean (0 errors) ✅
-- 28+ modules fully tested, 7 remaining untested (see below)
+- 29+ modules fully tested, 3 remaining untested (see below)
 - Zero runtime dependencies (devDep: vitest only)
 - GitHub: https://github.com/ApextheBoss/tensegrity
 
@@ -78,9 +78,29 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 15. ~~**ResourceContentionArbiter: resolveViaAuction() grants allocation without freeing capacity (FIXED)**~~
     - `resolveViaAuction()` now revokes losing incumbents' allocations before granting to the winner
 
-16. **4 modules still untested: hierarchical-consensus, scheduler-affinity-graph, state-machine, token-economy-engine**
+16. **3 modules still untested: scheduler-affinity-graph, state-machine, token-economy-engine**
     - state-machine is a duplicate of observable-state-machine (skip)
-    - ~7,500 lines of untested code
+    - ~5,500 lines of untested code
+
+### Bugs Found & Fixed (March 22, 2026 — midnight cron audit)
+
+17. **CrossShardCoordinator: confirmCommit() completed on first shard instead of requiring all (FIXED)**
+    - `confirmCommit()` reused the prepare-phase votes map to track commit acks
+    - After prepare, all shards already had `'yes'` entries, so `allConfirmed` was true on the first `confirmCommit()` call
+    - Result: 2PC commit phase was effectively skipped — tx marked committed after a single shard confirmed
+    - **Fix:** Track commit acknowledgments in a separate `commitAcks` map; only transition to 'committed' when all participating shards have acked
+
+18. **CrossShardCoordinator: vote() rejected votes after first partial vote (FIXED)**
+    - After the first `vote()` call, tx state changed from `'preparing'` to `'prepared'`
+    - Subsequent `vote()` calls were blocked by the guard `tx.state !== 'preparing'`
+    - Result: in multi-shard transactions, only the first shard's vote was recorded; tx could never reach 'committing' state
+    - **Fix:** Accept votes when state is either `'preparing'` or `'prepared'`
+
+19. **MetaConsensusLayer: early rejection check was wrong for even shard counts (FIXED)**
+    - Used `remaining = requiredVotes * 2 - 1 - votes.size` to infer total participants from majority threshold
+    - For even N (e.g., 4 shards, need 3): formula gave `3*2-1=5` total, but only 4 exist
+    - Result: proposals that should be rejected early (impossible to reach majority) stayed open indefinitely
+    - **Fix:** Store `totalVoters` on proposal, use `yesVotes + remaining < requiredVotes` for correct early rejection
 
 ### Bugs Found & Fixed (March 20, 2026 — PM audit)
 

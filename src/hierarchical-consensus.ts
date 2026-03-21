@@ -463,6 +463,7 @@ class CrossShardCoordinator {
   private transactions: Map<string, CrossShardTx> = new Map();
   private readonly defaultTimeoutMs: number;
   private completedTxIds: Set<string> = new Set(); // idempotency
+  private commitAcks: Map<string, Set<string>> = new Map(); // txId -> shards that confirmed commit
   private txCounter: number = 0;
 
   constructor(defaultTimeoutMs: number = 10_000) {
@@ -499,7 +500,7 @@ class CrossShardCoordinator {
    */
   vote(txId: string, shardId: string, vote: 'yes' | 'no'): CrossShardTx | null {
     const tx = this.transactions.get(txId);
-    if (!tx || tx.state !== 'preparing') return null;
+    if (!tx || (tx.state !== 'preparing' && tx.state !== 'prepared')) return null;
 
     const newVotes = new Map(tx.votes);
     newVotes.set(shardId, vote);
@@ -521,7 +522,7 @@ class CrossShardCoordinator {
       return committing;
     }
 
-    const updated = { ...tx, votes: newVotes, state: 'prepared' as const };
+    const updated: CrossShardTx = { ...tx, votes: newVotes, state: 'prepared' };
     this.transactions.set(txId, updated);
     return updated;
   }
@@ -533,20 +534,25 @@ class CrossShardCoordinator {
     const tx = this.transactions.get(txId);
     if (!tx || tx.state !== 'committing') return null;
 
-    // Track commit confirmations via the vote map (reuse as ack map)
-    const newVotes = new Map(tx.votes);
-    newVotes.set(shardId, 'yes');
+    // Track commit confirmations separately from prepare votes
+    // Use 'yes' value with a 'committed:' prefix to distinguish from prepare votes
+    if (!this.commitAcks.has(txId)) {
+      this.commitAcks.set(txId, new Set());
+    }
+    this.commitAcks.get(txId)!.add(shardId);
 
     // All confirmed?
-    const allConfirmed = tx.participantShards.every(s => newVotes.has(s));
+    const acks = this.commitAcks.get(txId)!;
+    const allConfirmed = tx.participantShards.every(s => acks.has(s));
     if (allConfirmed) {
-      const committed: CrossShardTx = { ...tx, votes: newVotes, state: 'committed' };
+      const committed: CrossShardTx = { ...tx, state: 'committed' };
       this.transactions.set(txId, committed);
       this.completedTxIds.add(txId);
+      this.commitAcks.delete(txId);
       return committed;
     }
 
-    return { ...tx, votes: newVotes };
+    return tx;
   }
 
   /**
@@ -592,6 +598,7 @@ class CrossShardCoordinator {
           now - tx.startTime > maxAgeMs) {
         this.transactions.delete(txId);
         this.completedTxIds.delete(txId);
+        this.commitAcks.delete(txId);
         removed++;
       }
     }
@@ -796,6 +803,7 @@ class MetaConsensusLayer {
     proposer: string;
     votes: Map<string, boolean>;
     requiredVotes: number;
+    totalVoters: number;
     state: 'open' | 'accepted' | 'rejected';
     createdAt: number;
   }> = new Map();
@@ -819,6 +827,7 @@ class MetaConsensusLayer {
       proposer,
       votes: new Map(),
       requiredVotes: Math.floor(totalShards / 2) + 1,
+      totalVoters: totalShards,
       state: 'open',
       createdAt: Date.now(),
     });
@@ -849,8 +858,8 @@ class MetaConsensusLayer {
     }
 
     // Can't possibly reach majority with remaining votes
-    const remaining = proposal.requiredVotes * 2 - 1 - proposal.votes.size;
-    if (noVotes > remaining) {
+    const remaining = proposal.totalVoters - proposal.votes.size;
+    if (yesVotes + remaining < proposal.requiredVotes) {
       proposal.state = 'rejected';
       return 'rejected';
     }
