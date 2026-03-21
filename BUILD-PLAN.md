@@ -5,13 +5,14 @@
 
 "Every agent framework handles LLM calls. None of them handle what happens when agents crash, overload, or need to coordinate. That's Tensegrity."
 
-## Current State (March 18, 2026)
-- 35 source files, 36K lines TypeScript
+## Current State (March 21, 2026)
+- 36 source files, ~36K lines TypeScript
 - Compiles to dist/
-- 2 GitHub stars, 0 forks
-- **ZERO tests**
-- **NOT published to npm**
-- Code quality: UNVERIFIED — likely generated in bulk, needs audit
+- **Published to npm** as `tensegrity@0.1.0` ✅
+- **1,162 tests** across 28 test suites, all passing ✅
+- 26+ modules fully tested, remaining experimental modules compile clean
+- Zero runtime dependencies (devDep: vitest only)
+- GitHub: https://github.com/ApextheBoss/tensegrity
 
 ## Phase 1: Foundation (NOW — March 22)
 Priority: Make the core modules ACTUALLY WORK and prove it.
@@ -20,7 +21,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 
 - [x] **AUDIT core modules** — Audited all 4. Fixed: exported types from reputation-router, removed `as any` hack in task-auction's getActiveAuctions (added proper method to TaskAuctioneer), exported decayedReputation for testability.
 - [x] **Write tests for core 4** — 48 tests across all 4 modules. circuit-breaker (10), backpressure (9), reputation-router (12), task-auction (17). All passing.
-- [ ] **Publish to npm** — `npm publish` as `tensegrity`. Needs npm account (use protonmail).
+- [x] **Publish to npm** — Published as `tensegrity@0.1.0`. Zero dependencies.
 - [x] **Create examples/** — 3 real examples: (1) basic circuit breaker usage, (2) multi-agent task routing, (3) gossip-based service discovery
 - [x] **README rewrite** — honest about what works, what's experimental. Add badges, install instructions, quick start. Split modules into tested ✅ vs experimental. 719 tests, 20 suites.
 
@@ -164,24 +165,41 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 
 ## Phase 2: Cloud Product (March 23-30)
 - [ ] Design Tensegrity Cloud API — agents connect via WebSocket, cloud handles coordination
-- [ ] Build cloud server (Hono + WebSocket)
+- [ ] Build cloud server (Hono + WebSocket) — already have hono dep in package.json
 - [ ] Dashboard — agent health, task routing visualization, failure rates
 - [ ] Deploy on VibeKit
-- [ ] Pricing: Free (npm) / $29 (10 agents) / $99 (100 agents) / $499 (unlimited)
+- [ ] Implement usage metering + Stripe billing
+- [ ] Landing page at tensegrity.dev (or similar)
+
+### Cloud Architecture Notes
+- WebSocket server: agents connect, server mediates coordination (gossip, locks, task auctions)
+- Stateless relay layer + Redis/SQLite for state persistence
+- Dashboard: React SPA showing real-time agent topology, circuit breaker states, task flow
+- API keys for auth, workspace isolation for multi-tenant
 
 ## Phase 3: Growth (April)
 - [ ] Blog post: "Why Your Agent Framework Will Fail at Scale"
-- [ ] HN launch
+- [ ] HN launch — target distributed systems crowd
 - [ ] ProductHunt launch
-- [ ] Integrate with CrewAI, AutoGen, LangGraph
+- [ ] Integrate with CrewAI, AutoGen, LangGraph — write adapter packages or guides
 - [ ] X content about real coordination problems
+- [ ] Discord community for tensegrity users
+- [ ] "Awesome Multi-Agent" list — get tensegrity listed
+- [ ] Conference talks / podcast appearances on agent infrastructure
 
-## Competitive Landscape (Updated March 20, 2026)
+### Content Calendar (April)
+- Week 1: HN launch + blog post
+- Week 2: CrewAI integration guide + X thread on agent failure modes
+- Week 3: ProductHunt + LangGraph integration
+- Week 4: "Building a fault-tolerant agent swarm" tutorial
+
+## Competitive Landscape (Updated March 21, 2026)
 
 ### Direct npm Competitors (multi-agent coordination space)
 - **swarm-mail** (joelhooks) — 3.3K monthly downloads, 2 dependents. Event sourcing primitives for multi-agent coordination. Local-first, no external servers. Overlap: coordination primitives. Difference: event-sourcing focused, not distributed systems.
 - **swarm-queue** (joelhooks) — 3.3K monthly downloads. Distributed job queue using BullMQ + Redis. Requires Redis (external dependency). Tensegrity is zero-dep.
-- **@grackle-ai/web** — 4.3K weekly downloads, actively maintained (updated today). React dashboard for multi-agent coordination platform. Full platform play with UI. Potential competitor if they expand beyond dashboard.
+- **@grackle-ai/web** — 4.3K weekly downloads, actively maintained (updated March 21). React dashboard for multi-agent coordination platform. Full platform play with UI. Watch closely — they're shipping fast.
+- **@versatly/workgraph** — Appeared in npm search results. Worth monitoring for overlap.
 - **opencastle** — 6.6K monthly downloads. Multi-agent orchestration for AI coding assistants. BUSL-1.1 license (not open source). Different niche (coding agents).
 - **myagents** — 2.3K monthly. BMAD multi-agent orchestration. Description-to-code pipeline. Different layer.
 - **opensquad** — 1.8K monthly. Claude Code multi-agent orchestration.
