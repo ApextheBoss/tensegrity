@@ -9,7 +9,7 @@
 - 37 source files, ~36K lines TypeScript
 - Compiles to dist/
 - **Published to npm** as `tensegrity@0.1.0` ✅
-- **1,545 tests** across 35 test suites, all passing ✅
+- **1,598 tests** across 36 test suites, all passing ✅
 - TypeScript compiles clean (0 errors) ✅
 - 29+ modules fully tested, 3 remaining untested (see below)
 - Zero runtime dependencies (devDep: vitest only)
@@ -78,9 +78,10 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 15. ~~**ResourceContentionArbiter: resolveViaAuction() grants allocation without freeing capacity (FIXED)**~~
     - `resolveViaAuction()` now revokes losing incumbents' allocations before granting to the winner
 
-16. **3 modules still untested: scheduler-affinity-graph, state-machine, token-economy-engine**
+16. **2 modules still untested: ~~scheduler-affinity-graph~~, state-machine, token-economy-engine**
+    - ~~scheduler-affinity-graph~~ ✅ 53 tests added (March 22)
     - state-machine is a duplicate of observable-state-machine (skip)
-    - ~5,500 lines of untested code
+    - ~1,287 lines of untested code (token-economy-engine)
 
 ### Bugs Found & Fixed (March 22, 2026 — midnight cron audit)
 
