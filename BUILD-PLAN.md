@@ -107,13 +107,12 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
    - The sliding `monitorWindowMs` is effectively useless since successes wipe it
    - **Recommendation:** Only prune failures by time window, not on success. Success should not clear the window.
 
-2. **CircuitBreakerRegistry.get() silently ignores config on existing breakers**
-   - If you call `registry.get('agent-a', { failureThreshold: 5 })` and then later `registry.get('agent-a', { failureThreshold: 1 })`, the second config is silently ignored
-   - **Recommendation:** Either warn/throw when config differs, or document that config is first-call-only
+2. ~~**CircuitBreakerRegistry.get() silently ignores config on existing breakers (FIXED)**~~
+   - `get()` now throws when called with config on an existing breaker
+   - Added `getOrCreate()` for first-call-wins semantics (old behavior)
 
-3. **BackpressureController: drop-oldest still counts dropped message in inRate**
-   - When `drop-oldest` fires, the *old* message was already recorded as `recordIn()`, and the *new* message also gets `recordIn()`. The dropped old message inflates the historical in-rate
-   - Minor issue, but `inRate` in metrics will be slightly inaccurate under sustained drop-oldest pressure
+3. ~~**BackpressureController: drop-oldest still counts dropped message in inRate (FIXED)**~~
+   - drop-oldest now removes oldest inTimestamp to compensate for the dropped message's original recordIn()
 
 11. ~~**QueryPlanner doesn't handle 'covering' index type (FIXED)**~~
     - `plan()` switch cases for query types only checked `idx.type === 'hash' | 'btree' | 'inverted'`
