@@ -50,5 +50,7 @@ export type { LinkMetrics, Route, RoutingMessage, CongestionSignal, FailureEvent
 export type { Task as WSTask, AgentNode as WSAgentNode, StealResult, StealPolicy, PoolConfig as WSPoolConfig, PoolEvent as WSPoolEvent } from './adaptive-work-stealing';
 export { ObservableStateMachine as ObservableStateMachineV2, StateMachineBuilder, StateRegistry, TransitionEngine, ObserverManager, TimeoutManager, InvariantChecker, TransitionLog, SnapshotManager, DeadlockDetector, ParallelRegionCoordinator, createAgentLifecycleMachine, createProtocolHandshakeMachine, createTaskWorkflowMachine } from './observable-state-machine';
 export type { StateDefinition as OSMStateDefinition, TransitionDefinition, InvariantCheck, StateTimeout, MachineContext, TransitionRecord, StateSnapshot as OSMStateSnapshot, ObserverEntry, StateChangeEvent, MachineConfig } from './observable-state-machine';
+export { Dashboard, DEFAULT_CONFIG as DashboardDefaults } from './cloud-dashboard';
+export type { AgentInfo, AgentTaskMetrics, CircuitState, TaskRecord, DashboardSnapshot, TaskSummary, CapabilityStats, DashboardAlert, DashboardConfig, DashboardEventType, DashboardEventHandler } from './cloud-dashboard';
 export { TensegrityClient } from './cloud-client';
 export type { CloudClientConfig, CloudTask, CloudMessage, AgentMetrics, ConnectionState, CloudEventType, CloudEventHandler } from './cloud-client';
