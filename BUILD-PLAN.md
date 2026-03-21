@@ -118,6 +118,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - ~~High-priority untested: chaos-testing-harness~~ ✅ 57 tests added
 - ~~`capability-health-monitor.ts`~~ ✅ 62 tests added
 - `state-machine.ts` is a duplicate of `observable-state-machine.ts` (pre-fix version) — skip
+- ~~`rate-aware-federation.ts`~~ ✅ 54 tests added
 - ~~`eventually-consistent-index.ts`~~ ✅ 64 tests added
 - All untested modules compile and export correctly — but no behavioral verification
 
