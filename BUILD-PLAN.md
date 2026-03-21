@@ -9,7 +9,7 @@
 - 37 source files, ~36K lines TypeScript
 - Compiles to dist/
 - **Published to npm** as `tensegrity@0.1.0` ✅
-- **1,363 tests** across 32 test suites, all passing ✅
+- **1,428 tests** across 33 test suites, all passing ✅
 - TypeScript compiles clean (0 errors) ✅
 - 28+ modules fully tested, 7 remaining untested (see below)
 - Zero runtime dependencies (devDep: vitest only)
@@ -78,7 +78,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 15. ~~**ResourceContentionArbiter: resolveViaAuction() grants allocation without freeing capacity (FIXED)**~~
     - `resolveViaAuction()` now revokes losing incumbents' allocations before granting to the winner
 
-16. **6 modules still untested: consensus-view-synchronizer, contract-upgrade-proxy, hierarchical-consensus, scheduler-affinity-graph, state-machine, token-economy-engine**
+16. **5 modules still untested: contract-upgrade-proxy, hierarchical-consensus, scheduler-affinity-graph, state-machine, token-economy-engine**
     - state-machine is a duplicate of observable-state-machine (skip)
     - ~7,500 lines of untested code
 
@@ -135,7 +135,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 5. **Duplicate utility classes in 3 files** — `EWMATracker` and `WelfordStats` are still duplicated in `lease-consensus.ts`, `eventually-consistent-index.ts`, and `transactional-outbox.ts` instead of importing from `shared-utils.ts`
 
 ### Missing Test Coverage (7 of 35 modules untested)
-- 29 modules have tests (31 test files, 1,292 tests): circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator, adaptive-throttle-governor, eventually-consistent-index, agent-network-partitioner, chaos-testing-harness, distributed-barrier-synchronizer, capability-health-monitor, agent-capability-marketplace, rate-aware-federation, autonomous-task-decomposer
+- 30 modules have tests (33 test files, 1,428 tests): circuit-breaker, backpressure, reputation-router, task-auction, distributed-lock-manager, gossip-protocol-engine, shared-utils, destroy-methods, causal-broadcast, crdt-registry, lease-consensus, vector-clock-causality, work-queue-exactly-once, transactional-outbox, observable-state-machine, adaptive-work-stealing, resource-pool-manager, adaptive-routing-mesh, service-discovery-mesh, backoff-coordinator, adaptive-throttle-governor, eventually-consistent-index, agent-network-partitioner, chaos-testing-harness, distributed-barrier-synchronizer, capability-health-monitor, agent-capability-marketplace, rate-aware-federation, autonomous-task-decomposer, consensus-view-synchronizer
 - ~~High-priority untested: chaos-testing-harness~~ ✅ 57 tests added
 - ~~`capability-health-monitor.ts`~~ ✅ 62 tests added
 - ~~`agent-capability-marketplace.ts`~~ ✅ 56 tests added
