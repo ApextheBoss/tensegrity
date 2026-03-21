@@ -592,7 +592,7 @@ class QueryPlanner {
 
       switch (query.type) {
         case 'exact':
-          if (idx.type === 'hash') {
+          if (idx.type === 'hash' || idx.type === 'covering') {
             candidates.push({ indexName: idx.name, strategy: 'exact', estimatedCost: baseLatency, estimatedRows: 1, coveringFields: idx.coveringFields });
           } else if (idx.type === 'btree') {
             candidates.push({ indexName: idx.name, strategy: 'exact', estimatedCost: baseLatency * Math.log2(size + 1), estimatedRows: 1, coveringFields: idx.coveringFields });
