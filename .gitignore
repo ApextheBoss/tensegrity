@@ -1,4 +1,5 @@
 node_modules/
 dist/
+!cloud/dist/
 *.js.map
 cloud/server.ts.bak

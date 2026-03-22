@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "start": "node cloud/server-bundled.mjs",
+    "start": "node cloud/dist/server.js",
     "test": "vitest run"
   },
   "keywords": [
@@ -25,10 +25,5 @@
   "devDependencies": {
     "vitest": "^4.1.0"
   },
-  "dependencies": {
-    "@hono/node-server": "^1.19.11",
-    "express": "^5.2.1",
-    "hono": "^4.12.8",
-    "tsx": "^4.21.0"
-  }
+  "dependencies": {}
 }
