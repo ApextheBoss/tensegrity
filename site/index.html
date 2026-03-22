@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tensegrity — Distributed Systems Primitives for Multi-Agent Coordination</title>
+  <meta name="description" content="Zero-dependency TypeScript library with 35+ composable modules for building fault-tolerant multi-agent systems. Circuit breakers, consensus, backpressure, task routing, and more.">
+  <meta property="og:title" content="Tensegrity — Infrastructure for Multi-Agent Systems">
+  <meta property="og:description" content="Every agent framework handles LLM calls. None handle what happens when agents crash, overload, or need to coordinate. That's Tensegrity.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tensegrity.dev">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Tensegrity — Infrastructure for Multi-Agent Systems">
+  <meta name="twitter:description" content="35+ composable coordination modules. Zero dependencies. Pure TypeScript.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #D4621A;
+      --accent-light: #E8863F;
+      --bg: #09090b;
+      --bg-card: #131316;
+      --bg-card-hover: #1a1a1f;
+      --border: #27272a;
+      --text: #e4e4e7;
+      --text-muted: #71717a;
+      --text-dim: #52525b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --purple: #a78bfa;
+      --blue: #60a5fa;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-light); }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+
+    /* Nav */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(9,9,11,0.8); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between; height: 56px;
+    }
+    .nav-logo { font-weight: 700; font-size: 18px; color: #fff; }
+    .nav-logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
+    .nav-links a { color: var(--text-muted); font-size: 14px; font-weight: 500; transition: color 0.15s; }
+    .nav-links a:hover { color: #fff; }
+
+    /* Hero */
+    .hero {
+      max-width: 1100px; margin: 0 auto; padding: 140px 24px 80px; text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(212,98,26,0.1); border: 1px solid rgba(212,98,26,0.3);
+      border-radius: 100px; padding: 6px 16px; font-size: 13px; color: var(--accent-light);
+      margin-bottom: 32px; font-weight: 500;
+    }
+    .hero-badge .dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; }
+    h1 {
+      font-size: clamp(36px, 6vw, 64px); font-weight: 800; color: #fff;
+      line-height: 1.1; margin-bottom: 24px; letter-spacing: -0.02em;
+    }
+    h1 .gradient {
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-sub {
+      font-size: clamp(16px, 2.5vw, 20px); color: var(--text-muted);
+      max-width: 640px; margin: 0 auto 40px; line-height: 1.6;
+    }
+    .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 600;
+      transition: all 0.15s; cursor: pointer; border: none;
+    }
+    .btn-primary {
+      background: var(--accent); color: #fff;
+    }
+    .btn-primary:hover { background: var(--accent-light); color: #fff; }
+    .btn-secondary {
+      background: var(--bg-card); color: var(--text); border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--bg-card-hover); color: #fff; border-color: #3f3f46; }
+    .install-cmd {
+      display: inline-flex; align-items: center; gap: 12px;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 20px; margin-top: 32px; font-family: 'JetBrains Mono', monospace;
+      font-size: 15px; color: var(--text-muted); cursor: pointer; transition: border-color 0.15s;
+    }
+    .install-cmd:hover { border-color: var(--accent); }
+    .install-cmd .dollar { color: var(--text-dim); }
+    .install-cmd .pkg { color: #fff; }
+    .install-cmd .copy { color: var(--text-dim); font-size: 13px; }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex; justify-content: center; gap: 48px; padding: 48px 24px;
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      max-width: 1100px; margin: 0 auto;
+    }
+    .stat { text-align: center; }
+    .stat-val { font-size: 32px; font-weight: 700; color: #fff; }
+    .stat-val span { color: var(--accent); }
+    .stat-lbl { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+    /* Section */
+    section { max-width: 1100px; margin: 0 auto; padding: 96px 24px; }
+    .section-label {
+      font-size: 13px; font-weight: 600; color: var(--accent); text-transform: uppercase;
+      letter-spacing: 0.08em; margin-bottom: 12px;
+    }
+    h2 {
+      font-size: clamp(28px, 4vw, 40px); font-weight: 700; color: #fff;
+      margin-bottom: 16px; letter-spacing: -0.01em;
+    }
+    .section-sub { font-size: 17px; color: var(--text-muted); max-width: 600px; margin-bottom: 48px; }
+
+    /* Problem section */
+    .problems { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+    .problem {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 28px; transition: border-color 0.2s;
+    }
+    .problem:hover { border-color: #3f3f46; }
+    .problem-icon { font-size: 28px; margin-bottom: 16px; }
+    .problem h3 { font-size: 17px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+    .problem p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+    /* Modules grid */
+    .modules-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px;
+    }
+    .module {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 16px 20px; display: flex; align-items: center; gap: 12px;
+      transition: all 0.15s; cursor: default;
+    }
+    .module:hover { border-color: var(--accent); background: var(--bg-card-hover); }
+    .module-icon { font-size: 18px; flex-shrink: 0; }
+    .module-name { font-size: 14px; font-weight: 500; color: #fff; }
+    .module-cat { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+    /* Code example */
+    .code-section { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+    .code-block {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 24px; overflow-x: auto;
+    }
+    .code-block pre {
+      font-size: 13px; line-height: 1.7; color: var(--text-muted);
+    }
+    .code-block .kw { color: var(--purple); }
+    .code-block .str { color: var(--accent); }
+    .code-block .cm { color: var(--text-dim); }
+    .code-block .fn { color: var(--blue); }
+    .code-block .num { color: var(--green); }
+    .code-text h3 { font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 12px; }
+    .code-text p { color: var(--text-muted); font-size: 15px; line-height: 1.7; margin-bottom: 16px; }
+    .code-text ul { list-style: none; }
+    .code-text li {
+      font-size: 14px; color: var(--text-muted); padding: 6px 0;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .code-text li::before { content: '✓'; color: var(--green); font-weight: 700; }
+
+    /* Pricing */
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .price-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 32px; transition: border-color 0.2s;
+    }
+    .price-card.featured { border-color: var(--accent); }
+    .price-card .tier { font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 8px; }
+    .price-card .price { font-size: 36px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .price-card .price-period { font-size: 14px; color: var(--text-dim); }
+    .price-card .price-desc { font-size: 14px; color: var(--text-muted); margin: 16px 0; line-height: 1.5; }
+    .price-card ul { list-style: none; margin-top: 16px; }
+    .price-card li { font-size: 13px; color: var(--text-muted); padding: 6px 0; display: flex; gap: 8px; }
+    .price-card li::before { content: '→'; color: var(--text-dim); }
+
+    /* CTA */
+    .cta {
+      text-align: center; padding: 96px 24px;
+      border-top: 1px solid var(--border);
+    }
+    .cta h2 { margin-bottom: 16px; }
+    .cta p { color: var(--text-muted); font-size: 17px; max-width: 500px; margin: 0 auto 32px; }
+
+    /* Footer */
+    footer {
+      max-width: 1100px; margin: 0 auto; padding: 32px 24px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 13px; color: var(--text-dim);
+    }
+    footer a { color: var(--text-muted); }
+    .footer-links { display: flex; gap: 24px; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .stats-bar { gap: 24px; flex-wrap: wrap; }
+      .code-section { grid-template-columns: 1fr; }
+      .nav-links { gap: 16px; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      footer { flex-direction: column; gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo"><span>tensegrity</span></div>
+    <div class="nav-links">
+      <a href="#modules">Modules</a>
+      <a href="#examples">Examples</a>
+      <a href="#pricing">Pricing</a>
+      <a href="https://github.com/ApextheBoss/tensegrity">GitHub</a>
+      <a href="https://www.npmjs.com/package/tensegrity">npm</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    v0.1.0 — 1,724 tests passing
+  </div>
+  <h1>
+    Infrastructure for<br>
+    <span class="gradient">multi-agent systems</span>
+  </h1>
+  <p class="hero-sub">
+    Every agent framework handles LLM calls. None handle what happens when agents
+    crash, overload, or need to coordinate. <strong style="color:#fff">That's Tensegrity.</strong>
+  </p>
+  <div class="hero-actions">
+    <a href="https://github.com/ApextheBoss/tensegrity" class="btn btn-primary">
+      View on GitHub →
+    </a>
+    <a href="https://www.npmjs.com/package/tensegrity" class="btn btn-secondary">
+      npm package
+    </a>
+  </div>
+  <div class="install-cmd" onclick="navigator.clipboard.writeText('npm install tensegrity')">
+    <span class="dollar">$</span>
+    <span class="pkg">npm install tensegrity</span>
+    <span class="copy">click to copy</span>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-val"><span>35</span></div>
+    <div class="stat-lbl">Composable Modules</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val"><span>0</span></div>
+    <div class="stat-lbl">Dependencies</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val"><span>1,724</span></div>
+    <div class="stat-lbl">Tests Passing</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val"><span>100%</span></div>
+    <div class="stat-lbl">TypeScript</div>
+  </div>
+</div>
+
+<!-- Problem -->
+<section>
+  <div class="section-label">The Problem</div>
+  <h2>Your agents have no safety net</h2>
+  <p class="section-sub">Multi-agent systems fail in ways LLM wrappers can't fix.</p>
+  <div class="problems">
+    <div class="problem">
+      <div class="problem-icon">💥</div>
+      <h3>Cascading Failures</h3>
+      <p>One agent goes down. Three dependents retry. Retries overload the system. Everything dies in 8 seconds. You needed a circuit breaker.</p>
+    </div>
+    <div class="problem">
+      <div class="problem-icon">🌊</div>
+      <h3>Uncontrolled Load</h3>
+      <p>Fast producer, slow consumer. Queue fills to 100K messages. Memory spikes. OOM kill. You needed backpressure.</p>
+    </div>
+    <div class="problem">
+      <div class="problem-icon">🔒</div>
+      <h3>Shared State Chaos</h3>
+      <p>Two agents update the same resource. Race condition. Data corruption. You needed distributed locks or CRDTs.</p>
+    </div>
+    <div class="problem">
+      <div class="problem-icon">🎯</div>
+      <h3>Blind Routing</h3>
+      <p>Task goes to a random agent. That agent is overloaded. Another is idle. You needed reputation-aware routing.</p>
+    </div>
+    <div class="problem">
+      <div class="problem-icon">👻</div>
+      <h3>Silent Degradation</h3>
+      <p>Agent latency creeps from 200ms to 5s. Nobody notices until users complain. You needed health monitoring.</p>
+    </div>
+    <div class="problem">
+      <div class="problem-icon">🏗️</div>
+      <h3>DIY Infrastructure</h3>
+      <p>Every team building multi-agent systems reinvents the same primitives. Badly. In application code. You needed a library.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Modules -->
+<section id="modules">
+  <div class="section-label">Modules</div>
+  <h2>35 modules. Pick what you need.</h2>
+  <p class="section-sub">Import individual modules. No bloat. Tree-shakeable. Each one solves a real distributed systems problem.</p>
+  <div class="modules-grid">
+    <div class="module"><div class="module-icon">🔌</div><div><div class="module-name">CircuitBreaker</div><div class="module-cat">Resilience</div></div></div>
+    <div class="module"><div class="module-icon">🌊</div><div><div class="module-name">BackpressureController</div><div class="module-cat">Flow Control</div></div></div>
+    <div class="module"><div class="module-icon">⭐</div><div><div class="module-name">ReputationRouter</div><div class="module-cat">Routing</div></div></div>
+    <div class="module"><div class="module-icon">🔨</div><div><div class="module-name">TaskAuctioneer</div><div class="module-cat">Task Allocation</div></div></div>
+    <div class="module"><div class="module-icon">🔒</div><div><div class="module-name">DistributedLockManager</div><div class="module-cat">Coordination</div></div></div>
+    <div class="module"><div class="module-icon">📡</div><div><div class="module-name">GossipProtocolEngine</div><div class="module-cat">Discovery</div></div></div>
+    <div class="module"><div class="module-icon">🔗</div><div><div class="module-name">CRDTRegistry</div><div class="module-cat">State</div></div></div>
+    <div class="module"><div class="module-icon">📢</div><div><div class="module-name">CausalBroadcast</div><div class="module-cat">Messaging</div></div></div>
+    <div class="module"><div class="module-icon">🗳️</div><div><div class="module-name">LeaseConsensus</div><div class="module-cat">Consensus</div></div></div>
+    <div class="module"><div class="module-icon">⏱️</div><div><div class="module-name">VectorClockCausality</div><div class="module-cat">Ordering</div></div></div>
+    <div class="module"><div class="module-icon">📋</div><div><div class="module-name">WorkQueue</div><div class="module-cat">Exactly-Once Processing</div></div></div>
+    <div class="module"><div class="module-icon">📤</div><div><div class="module-name">TransactionalOutbox</div><div class="module-cat">Reliability</div></div></div>
+    <div class="module"><div class="module-icon">🔄</div><div><div class="module-name">ObservableStateMachine</div><div class="module-cat">State Management</div></div></div>
+    <div class="module"><div class="module-icon">🏗️</div><div><div class="module-name">AdaptiveWorkStealing</div><div class="module-cat">Load Balancing</div></div></div>
+    <div class="module"><div class="module-icon">🏊</div><div><div class="module-name">ResourcePoolManager</div><div class="module-cat">Resource Management</div></div></div>
+    <div class="module"><div class="module-icon">🛤️</div><div><div class="module-name">AdaptiveRoutingMesh</div><div class="module-cat">Routing</div></div></div>
+    <div class="module"><div class="module-icon">🔍</div><div><div class="module-name">ServiceDiscoveryMesh</div><div class="module-cat">Discovery</div></div></div>
+    <div class="module"><div class="module-icon">⏳</div><div><div class="module-name">BackoffCoordinator</div><div class="module-cat">Resilience</div></div></div>
+    <div class="module"><div class="module-icon">🚦</div><div><div class="module-name">AdaptiveThrottleGovernor</div><div class="module-cat">Rate Limiting</div></div></div>
+    <div class="module"><div class="module-icon">📊</div><div><div class="module-name">EventuallyConsistentIndex</div><div class="module-cat">Indexing</div></div></div>
+    <div class="module"><div class="module-icon">🌐</div><div><div class="module-name">AgentNetworkPartitioner</div><div class="module-cat">Testing</div></div></div>
+    <div class="module"><div class="module-icon">🧪</div><div><div class="module-name">ChaosTestingHarness</div><div class="module-cat">Testing</div></div></div>
+    <div class="module"><div class="module-icon">🚧</div><div><div class="module-name">DistributedBarrier</div><div class="module-cat">Synchronization</div></div></div>
+    <div class="module"><div class="module-icon">💊</div><div><div class="module-name">CapabilityHealthMonitor</div><div class="module-cat">Monitoring</div></div></div>
+    <div class="module"><div class="module-icon">🏪</div><div><div class="module-name">AgentCapabilityMarketplace</div><div class="module-cat">Discovery</div></div></div>
+    <div class="module"><div class="module-icon">🌍</div><div><div class="module-name">RateAwareFederation</div><div class="module-cat">Federation</div></div></div>
+    <div class="module"><div class="module-icon">🤖</div><div><div class="module-name">AutonomousTaskDecomposer</div><div class="module-cat">Planning</div></div></div>
+    <div class="module"><div class="module-icon">👁️</div><div><div class="module-name">ConsensusViewSynchronizer</div><div class="module-cat">Consensus</div></div></div>
+    <div class="module"><div class="module-icon">📐</div><div><div class="module-name">SchedulerAffinityGraph</div><div class="module-cat">Scheduling</div></div></div>
+    <div class="module"><div class="module-icon">💰</div><div><div class="module-name">TokenEconomyEngine</div><div class="module-cat">Incentives</div></div></div>
+    <div class="module"><div class="module-icon">⚔️</div><div><div class="module-name">ResourceContentionArbiter</div><div class="module-cat">Contention</div></div></div>
+    <div class="module"><div class="module-icon">🏛️</div><div><div class="module-name">HierarchicalConsensus</div><div class="module-cat">BFT Consensus</div></div></div>
+    <div class="module"><div class="module-icon">📦</div><div><div class="module-name">ContractUpgradeProxy</div><div class="module-cat">Versioning</div></div></div>
+    <div class="module"><div class="module-icon">📈</div><div><div class="module-name">UsageMetering</div><div class="module-cat">Billing</div></div></div>
+    <div class="module"><div class="module-icon">☁️</div><div><div class="module-name">TensegrityClient</div><div class="module-cat">Cloud SDK</div></div></div>
+  </div>
+</section>
+
+<!-- Code Examples -->
+<section id="examples">
+  <div class="section-label">Code</div>
+  <h2>Real code, not pseudo-code</h2>
+
+  <div class="code-section" style="margin-bottom: 64px;">
+    <div class="code-block">
+      <pre><span class="cm">// Protect agent calls with a circuit breaker</span>
+<span class="kw">import</span> { CircuitBreaker } <span class="kw">from</span> <span class="str">'tensegrity'</span>;
+
+<span class="kw">const</span> breaker = <span class="kw">new</span> <span class="fn">CircuitBreaker</span>(<span class="str">'agent-search'</span>, {
+  failureThreshold: <span class="num">3</span>,
+  resetTimeoutMs: <span class="num">30_000</span>,
+  monitorWindowMs: <span class="num">60_000</span>,
+});
+
+<span class="kw">const</span> result = <span class="kw">await</span> breaker.<span class="fn">execute</span>(() =>
+  searchAgent.<span class="fn">query</span>(<span class="str">'latest earnings report'</span>)
+);
+<span class="cm">// After 3 failures in 60s → fast-fails for 30s</span>
+<span class="cm">// Then allows one probe request to test recovery</span></pre>
+    </div>
+    <div class="code-text">
+      <h3>Circuit Breakers</h3>
+      <p>Stop cascading failures before they start. When a downstream agent starts failing, the breaker opens and fast-fails requests instead of piling on.</p>
+      <ul>
+        <li>Sliding window failure tracking</li>
+        <li>Half-open state with probe requests</li>
+        <li>Per-agent or per-service granularity</li>
+        <li>Event callbacks for monitoring</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="code-section" style="flex-direction: row-reverse; margin-bottom: 64px;">
+    <div class="code-block">
+      <pre><span class="cm">// Route tasks to the best available agent</span>
+<span class="kw">import</span> { ReputationRouter } <span class="kw">from</span> <span class="str">'tensegrity'</span>;
+
+<span class="kw">const</span> router = <span class="kw">new</span> <span class="fn">ReputationRouter</span>();
+
+router.<span class="fn">register</span>(<span class="str">'agent-1'</span>, [<span class="str">'summarize'</span>, <span class="str">'translate'</span>]);
+router.<span class="fn">register</span>(<span class="str">'agent-2'</span>, [<span class="str">'summarize'</span>, <span class="str">'classify'</span>]);
+
+<span class="cm">// Route based on reputation + capability match</span>
+<span class="kw">const</span> agent = router.<span class="fn">route</span>(<span class="str">'summarize'</span>);
+
+<span class="cm">// Report outcomes to update reputation</span>
+router.<span class="fn">reportSuccess</span>(agent, <span class="num">150</span>); <span class="cm">// 150ms</span>
+router.<span class="fn">reportFailure</span>(agent);</pre>
+    </div>
+    <div class="code-text">
+      <h3>Reputation-Aware Routing</h3>
+      <p>Don't send tasks to random agents. Route based on track record — success rates, latency, and capability match.</p>
+      <ul>
+        <li>EWMA-smoothed reputation scores</li>
+        <li>Capability-based matching</li>
+        <li>Automatic load shedding from poor performers</li>
+        <li>Decay function for stale reputation data</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="code-section">
+    <div class="code-block">
+      <pre><span class="cm">// Coordinate with gossip-based discovery</span>
+<span class="kw">import</span> { GossipProtocolEngine } <span class="kw">from</span> <span class="str">'tensegrity'</span>;
+
+<span class="kw">const</span> gossip = <span class="kw">new</span> <span class="fn">GossipProtocolEngine</span>({
+  nodeId: <span class="str">'node-1'</span>,
+  fanout: <span class="num">3</span>,
+  gossipIntervalMs: <span class="num">1000</span>,
+});
+
+<span class="cm">// Spread state across the cluster</span>
+gossip.<span class="fn">setLocal</span>(<span class="str">'status'</span>, <span class="str">'healthy'</span>);
+gossip.<span class="fn">setLocal</span>(<span class="str">'load'</span>, <span class="num">0.42</span>);
+
+<span class="cm">// Eventually consistent — all nodes converge</span>
+<span class="kw">const</span> peerLoad = gossip.<span class="fn">getRemote</span>(<span class="str">'node-2'</span>, <span class="str">'load'</span>);</pre>
+    </div>
+    <div class="code-text">
+      <h3>Gossip Protocol</h3>
+      <p>Decentralized service discovery and state dissemination. No central registry. No single point of failure.</p>
+      <ul>
+        <li>SWIM-style failure detection</li>
+        <li>Crescent protocol for efficient dissemination</li>
+        <li>Automatic membership management</li>
+        <li>Configurable fanout and intervals</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section id="pricing">
+  <div class="section-label">Pricing</div>
+  <h2>Start free. Scale when ready.</h2>
+  <p class="section-sub">The npm package is free forever. Tensegrity Cloud adds managed coordination infrastructure.</p>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="tier">Solo</div>
+      <div class="price">Free</div>
+      <div class="price-period">forever</div>
+      <div class="price-desc">The full npm package. Self-host everything.</div>
+      <ul>
+        <li>35 modules, zero dependencies</li>
+        <li>MIT licensed</li>
+        <li>Community support</li>
+        <li>All future updates</li>
+      </ul>
+    </div>
+    <div class="price-card featured">
+      <div class="tier">Team</div>
+      <div class="price">$49<span class="price-period">/mo</span></div>
+      <div class="price-period">&nbsp;</div>
+      <div class="price-desc">Managed coordination for small teams.</div>
+      <ul>
+        <li>Up to 25 connected agents</li>
+        <li>Managed WebSocket mesh</li>
+        <li>Real-time dashboard</li>
+        <li>7-day metric retention</li>
+      </ul>
+    </div>
+    <div class="price-card">
+      <div class="tier">Pro</div>
+      <div class="price">$149<span class="price-period">/mo</span></div>
+      <div class="price-period">&nbsp;</div>
+      <div class="price-desc">For production multi-agent deployments.</div>
+      <ul>
+        <li>Up to 250 agents</li>
+        <li>90-day retention</li>
+        <li>Priority support + SLA</li>
+        <li>Alerting & anomaly detection</li>
+      </ul>
+    </div>
+    <div class="price-card">
+      <div class="tier">Enterprise</div>
+      <div class="price">$499<span class="price-period">/mo</span></div>
+      <div class="price-period">&nbsp;</div>
+      <div class="price-desc">Full control for large-scale deployments.</div>
+      <ul>
+        <li>Unlimited agents</li>
+        <li>SSO & audit logs</li>
+        <li>Dedicated support</li>
+        <li>Custom SLA</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta">
+  <h2>Ship agents that don't fall over</h2>
+  <p>Three lines of code. Zero dependencies. Start building resilient multi-agent systems today.</p>
+  <div class="hero-actions">
+    <a href="https://github.com/ApextheBoss/tensegrity" class="btn btn-primary">Get Started →</a>
+    <a href="https://www.npmjs.com/package/tensegrity" class="btn btn-secondary">View on npm</a>
+  </div>
+</div>
+
+<footer>
+  <div>Built by <a href="https://x.com/ApextheBossAI">Apex</a> · MIT License</div>
+  <div class="footer-links">
+    <a href="https://github.com/ApextheBoss/tensegrity">GitHub</a>
+    <a href="https://www.npmjs.com/package/tensegrity">npm</a>
+    <a href="https://x.com/ApextheBossAI">Twitter</a>
+  </div>
+</footer>
+
+</body>
+</html>
