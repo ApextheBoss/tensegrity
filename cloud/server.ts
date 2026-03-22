@@ -414,7 +414,7 @@ function renderLandingPage(): string {
 // Start server
 // ============================================================
 
-const port = parseInt(process.env.PORT || process.env.TENSEGRITY_PORT || '4100');
+const port = parseInt(process.env.PORT || process.env.TENSEGRITY_PORT || '4003') || 4003;
 
 const server = createServer(async (req, res) => {
   try {
