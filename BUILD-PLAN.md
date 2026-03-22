@@ -78,10 +78,10 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 15. ~~**ResourceContentionArbiter: resolveViaAuction() grants allocation without freeing capacity (FIXED)**~~
     - `resolveViaAuction()` now revokes losing incumbents' allocations before granting to the winner
 
-16. **2 modules still untested: ~~scheduler-affinity-graph~~, state-machine, token-economy-engine**
+16. **~~2 modules still untested: scheduler-affinity-graph, state-machine, token-economy-engine~~**
     - ~~scheduler-affinity-graph~~ ✅ 53 tests added (March 22)
     - state-machine is a duplicate of observable-state-machine (skip)
-    - ~1,287 lines of untested code (token-economy-engine)
+    - ~~token-economy-engine~~ ✅ 64 tests added (March 22)
 
 ### Bugs Found & Fixed (March 22, 2026 — midnight cron audit)
 
