@@ -176,8 +176,15 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     });
   }
 
+  if (path === '/api/debug' && method === 'POST') {
+    const raw = await readBody(req);
+    return json(res, { raw, length: raw.length, headers: req.headers });
+  }
+
   if (path === '/api/workspaces' && method === 'POST') {
-    const body = safeJson(await readBody(req));
+    const raw = await readBody(req);
+    console.log('Workspace POST body:', JSON.stringify(raw), 'len:', raw.length);
+    const body = safeJson(raw);
     const id = generateId();
     const apiKey = generateApiKey();
     const workspace: Workspace = {
