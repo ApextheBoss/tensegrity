@@ -28,10 +28,15 @@ function getWorkspaceByKey(apiKey) {
 function readBody(req) {
     return new Promise((resolve, reject) => {
         const chunks = [];
-        const timeout = setTimeout(() => resolve(Buffer.concat(chunks).toString()), 5000);
-        req.on('data', (c) => chunks.push(c));
+        const timeout = setTimeout(() => {
+            console.log('readBody timeout, chunks:', chunks.length, 'readable:', req.readable, 'complete:', req.complete);
+            resolve(Buffer.concat(chunks).toString());
+        }, 3000);
+        req.on('data', (c) => { console.log('data chunk:', c.length); chunks.push(c); });
         req.on('end', () => { clearTimeout(timeout); resolve(Buffer.concat(chunks).toString()); });
         req.on('error', (err) => { clearTimeout(timeout); reject(err); });
+        // Some proxies send body already buffered — try reading
+        req.resume();
     });
 }
 function safeJson(str) {
