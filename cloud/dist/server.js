@@ -28,10 +28,19 @@ function getWorkspaceByKey(apiKey) {
 function readBody(req) {
     return new Promise((resolve, reject) => {
         const chunks = [];
+        const timeout = setTimeout(() => resolve(Buffer.concat(chunks).toString()), 5000);
         req.on('data', (c) => chunks.push(c));
-        req.on('end', () => resolve(Buffer.concat(chunks).toString()));
-        req.on('error', reject);
+        req.on('end', () => { clearTimeout(timeout); resolve(Buffer.concat(chunks).toString()); });
+        req.on('error', (err) => { clearTimeout(timeout); reject(err); });
     });
+}
+function safeJson(str) {
+    try {
+        return JSON.parse(str);
+    }
+    catch {
+        return {};
+    }
 }
 function json(res, data, status = 200) {
     const body = JSON.stringify(data);
@@ -109,7 +118,7 @@ async function handleRequest(req, res) {
         });
     }
     if (path === '/api/workspaces' && method === 'POST') {
-        const body = JSON.parse(await readBody(req) || '{}');
+        const body = safeJson(await readBody(req));
         const id = generateId();
         const apiKey = generateApiKey();
         const workspace = {
@@ -129,7 +138,7 @@ async function handleRequest(req, res) {
         return json(res, { error: 'Invalid API key' }, 401);
     // Register agent
     if (path === '/api/agents' && method === 'POST') {
-        const body = JSON.parse(await readBody(req) || '{}');
+        const body = safeJson(await readBody(req));
         if (!body.id || !body.name)
             return json(res, { error: 'id and name required' }, 400);
         const agent = {
@@ -156,7 +165,7 @@ async function handleRequest(req, res) {
         agent.lastHeartbeat = Date.now();
         agent.status = 'connected';
         agent.metrics.uptimeMs = Date.now() - agent.connectedAt;
-        const body = JSON.parse(await readBody(req) || '{}');
+        const body = safeJson(await readBody(req));
         if (body.metrics)
             Object.assign(agent.metrics, body.metrics);
         return json(res, { status: 'ok', agent });
@@ -172,7 +181,7 @@ async function handleRequest(req, res) {
     }
     // Route task
     if (path === '/api/route' && method === 'POST') {
-        const body = JSON.parse(await readBody(req) || '{}');
+        const body = safeJson(await readBody(req));
         if (!body.capability)
             return json(res, { error: 'capability required' }, 400);
         refreshAgentStatuses(ws);
@@ -199,7 +208,7 @@ async function handleRequest(req, res) {
     // Task complete: /api/tasks/:id/complete
     const completeMatch = path.match(/^\/api\/tasks\/([^/]+)\/complete$/);
     if (completeMatch && method === 'POST') {
-        const body = JSON.parse(await readBody(req) || '{}');
+        const body = safeJson(await readBody(req));
         if (!body.agentId)
             return json(res, { error: 'agentId required' }, 400);
         const agent = ws.agents.get(body.agentId);
@@ -220,7 +229,7 @@ async function handleRequest(req, res) {
     // Task fail: /api/tasks/:id/fail
     const failMatch = path.match(/^\/api\/tasks\/([^/]+)\/fail$/);
     if (failMatch && method === 'POST') {
-        const body = JSON.parse(await readBody(req) || '{}');
+        const body = safeJson(await readBody(req));
         if (!body.agentId)
             return json(res, { error: 'agentId required' }, 400);
         const agent = ws.agents.get(body.agentId);

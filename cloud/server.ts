@@ -82,10 +82,15 @@ function getWorkspaceByKey(apiKey: string): Workspace | null {
 function readBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
+    const timeout = setTimeout(() => resolve(Buffer.concat(chunks).toString()), 5000);
     req.on('data', (c: Buffer) => chunks.push(c));
-    req.on('end', () => resolve(Buffer.concat(chunks).toString()));
-    req.on('error', reject);
+    req.on('end', () => { clearTimeout(timeout); resolve(Buffer.concat(chunks).toString()); });
+    req.on('error', (err) => { clearTimeout(timeout); reject(err); });
   });
+}
+
+function safeJson(str: string): any {
+  try { return JSON.parse(str); } catch { return {}; }
 }
 
 function json(res: ServerResponse, data: unknown, status = 200): void {
@@ -172,7 +177,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
   }
 
   if (path === '/api/workspaces' && method === 'POST') {
-    const body = JSON.parse(await readBody(req) || '{}');
+    const body = safeJson(await readBody(req));
     const id = generateId();
     const apiKey = generateApiKey();
     const workspace: Workspace = {
@@ -193,7 +198,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
 
   // Register agent
   if (path === '/api/agents' && method === 'POST') {
-    const body = JSON.parse(await readBody(req) || '{}');
+    const body = safeJson(await readBody(req));
     if (!body.id || !body.name) return json(res, { error: 'id and name required' }, 400);
     const agent: Agent = {
       id: body.id, name: body.name, status: 'connected',
@@ -220,7 +225,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     agent.lastHeartbeat = Date.now();
     agent.status = 'connected';
     agent.metrics.uptimeMs = Date.now() - agent.connectedAt;
-    const body = JSON.parse(await readBody(req) || '{}');
+    const body = safeJson(await readBody(req));
     if (body.metrics) Object.assign(agent.metrics, body.metrics);
     return json(res, { status: 'ok', agent });
   }
@@ -236,7 +241,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
 
   // Route task
   if (path === '/api/route' && method === 'POST') {
-    const body = JSON.parse(await readBody(req) || '{}');
+    const body = safeJson(await readBody(req));
     if (!body.capability) return json(res, { error: 'capability required' }, 400);
     refreshAgentStatuses(ws);
     const candidates = Array.from(ws.agents.values()).filter(a =>
@@ -266,7 +271,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
   // Task complete: /api/tasks/:id/complete
   const completeMatch = path.match(/^\/api\/tasks\/([^/]+)\/complete$/);
   if (completeMatch && method === 'POST') {
-    const body = JSON.parse(await readBody(req) || '{}');
+    const body = safeJson(await readBody(req));
     if (!body.agentId) return json(res, { error: 'agentId required' }, 400);
     const agent = ws.agents.get(body.agentId);
     if (!agent) return json(res, { error: 'Agent not found' }, 404);
@@ -283,7 +288,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
   // Task fail: /api/tasks/:id/fail
   const failMatch = path.match(/^\/api\/tasks\/([^/]+)\/fail$/);
   if (failMatch && method === 'POST') {
-    const body = JSON.parse(await readBody(req) || '{}');
+    const body = safeJson(await readBody(req));
     if (!body.agentId) return json(res, { error: 'agentId required' }, 400);
     const agent = ws.agents.get(body.agentId);
     if (!agent) return json(res, { error: 'Agent not found' }, 404);
