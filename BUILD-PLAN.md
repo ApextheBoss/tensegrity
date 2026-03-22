@@ -73,6 +73,19 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
     - `fnv1aHash` imported from shared-utils but never used anywhere in the module
     - **Fix:** Removed unused import
 
+### Bugs Found & Fixed (March 22, 2026 — morning cron audit)
+
+20. **TokenEconomyEngine: tiered revenue distribution silently lost undistributed remainder (FIXED)**
+    - `distribute()` set `pool.distributedRevenue = pool.totalRevenue` regardless of how much was actually distributed
+    - With tiered rates < 1, less than `undistributed` was actually handed out, but the pool marked everything as distributed
+    - Result: remainder tokens vanished — could never be distributed in subsequent rounds
+    - **Fix:** Track `actualDistributed` sum and only increment `pool.distributedRevenue` by that amount; remainder stays available for future distribution
+
+21. **DistributedLockManager: deadlock victim selection was non-deterministic (FIXED)**
+    - `detectAndResolveDeadlocks()` built `agentTimestamps` by calling `Date.now()` for every agent in the cycle
+    - All agents got effectively identical timestamps, so "youngest" selection was random based on sub-ms timing
+    - **Fix:** Use actual request timestamps from wait queue and grant times to identify the truly youngest agent
+
 ### Remaining Issues
 
 15. ~~**ResourceContentionArbiter: resolveViaAuction() grants allocation without freeing capacity (FIXED)**~~

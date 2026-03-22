@@ -806,6 +806,7 @@ class RevenueManager {
 
     const distributions = new Map<string, number>();
     const strategy = pool.distributionStrategy;
+    let actualDistributed = 0;
 
     for (const [addr, share] of pool.contributors) {
       let amount: number;
@@ -830,7 +831,8 @@ class RevenueManager {
         }
 
         case 'tiered': {
-          // Find applicable tier based on cumulative earned
+          // Rate modifies payout — rates < 1 mean less is distributed,
+          // with remainder staying in the pool for future distribution.
           const totalEarned = share.earned;
           let rate = strategy.tiers[0]?.rate || 1;
           for (const tier of strategy.tiers) {
@@ -844,11 +846,13 @@ class RevenueManager {
       }
 
       share.earned += amount;
+      actualDistributed += amount;
       if (share.vestingStart === 0) share.vestingStart = currentEpoch;
       distributions.set(addr, amount);
     }
 
-    pool.distributedRevenue = pool.totalRevenue;
+    // Only mark what was actually distributed (tiered rates may leave remainder)
+    pool.distributedRevenue += actualDistributed;
     pool.lastDistribution = currentEpoch;
 
     return distributions;

@@ -731,10 +731,29 @@ class DistributedLockManager {
 
     while (cycle) {
       this.stats.totalDeadlocksDetected++;
+      // Build timestamp map from actual lock request times for correct victim selection.
+      // Use the earliest queued request timestamp per agent (older = registered earlier).
       const agentTimestamps = new Map<string, number>();
-      // Use bakery tickets as proxy for agent age
       for (const agentId of cycle) {
-        agentTimestamps.set(agentId, Date.now()); // youngest gets victimized
+        let earliest = Infinity;
+        for (const queue of this.waitQueue.values()) {
+          for (const r of queue) {
+            if (r.agentId === agentId && r.timestamp < earliest) {
+              earliest = r.timestamp;
+            }
+          }
+        }
+        // Fallback: check grant times for agents that hold (not wait)
+        if (earliest === Infinity) {
+          for (const grants of this.grants.values()) {
+            for (const g of grants) {
+              if (g.agentId === agentId && g.grantedAt < earliest) {
+                earliest = g.grantedAt;
+              }
+            }
+          }
+        }
+        agentTimestamps.set(agentId, earliest === Infinity ? Date.now() : earliest);
       }
 
       const victim = this.waitForGraph.selectVictim(cycle, agentTimestamps, 'youngest');
