@@ -226,7 +226,7 @@ Priority: Make the core modules ACTUALLY WORK and prove it.
 - [x] Build cloud client SDK (src/cloud-client.ts) — WebSocket client with auto-reconnect, heartbeats, task routing, request/response protocol, 21 tests
 - [x] Dashboard — agent health, task routing visualization, failure rates (cloud-dashboard.ts, 52 tests)
 - [x] Deploy on VibeKit — live at https://tensegrity.vibekit.bot (landing page + health API; POST body forwarding blocked by proxy)
-- [ ] Implement usage metering + Stripe billing
+- [x] Implement usage metering + Stripe billing hooks (usage-metering.ts, 41 tests)
 - [ ] Landing page at tensegrity.dev (or similar)
 
 ### Cloud Architecture Notes
