@@ -54,3 +54,5 @@ export { Dashboard, DEFAULT_CONFIG as DashboardDefaults } from './cloud-dashboar
 export type { AgentInfo, AgentTaskMetrics, CircuitState, TaskRecord, DashboardSnapshot, TaskSummary, CapabilityStats, DashboardAlert, DashboardConfig, DashboardEventType, DashboardEventHandler } from './cloud-dashboard';
 export { TensegrityClient } from './cloud-client';
 export type { CloudClientConfig, CloudTask, CloudMessage, AgentMetrics, ConnectionState, CloudEventType, CloudEventHandler } from './cloud-client';
+export { UsageMeter, InMemoryUsageStore, SlidingWindowRateLimiter, PLAN_LIMITS } from './usage-metering';
+export type { UsageMeterConfig, UsageStore, UsageRecord, UsageMetric, WorkspaceUsage, BillingEvent, BillingEventType, LimitCheckResult, PlanTier, PlanLimits } from './usage-metering';
