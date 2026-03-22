@@ -80,17 +80,13 @@ function getWorkspaceByKey(apiKey: string): Workspace | null {
 // ============================================================
 
 function readBody(req: IncomingMessage): Promise<string> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
+    if (req.complete) { resolve(''); return; }
     const chunks: Buffer[] = [];
-    const timeout = setTimeout(() => {
-      console.log('readBody timeout, chunks:', chunks.length, 'readable:', req.readable, 'complete:', req.complete);
-      resolve(Buffer.concat(chunks).toString());
-    }, 3000);
-    req.on('data', (c: Buffer) => { console.log('data chunk:', c.length); chunks.push(c); });
+    const timeout = setTimeout(() => resolve(Buffer.concat(chunks).toString()), 3000);
+    req.on('data', (c: Buffer) => chunks.push(c));
     req.on('end', () => { clearTimeout(timeout); resolve(Buffer.concat(chunks).toString()); });
-    req.on('error', (err) => { clearTimeout(timeout); reject(err); });
-    // Some proxies send body already buffered — try reading
-    req.resume();
+    req.on('error', () => { clearTimeout(timeout); resolve(Buffer.concat(chunks).toString()); });
   });
 }
 
@@ -181,15 +177,8 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     });
   }
 
-  if (path === '/api/debug' && method === 'POST') {
-    const raw = await readBody(req);
-    return json(res, { raw, length: raw.length, headers: req.headers });
-  }
-
   if (path === '/api/workspaces' && method === 'POST') {
-    const raw = await readBody(req);
-    console.log('Workspace POST body:', JSON.stringify(raw), 'len:', raw.length);
-    const body = safeJson(raw);
+    const body = safeJson(await readBody(req));
     const id = generateId();
     const apiKey = generateApiKey();
     const workspace: Workspace = {
